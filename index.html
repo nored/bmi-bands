@@ -552,7 +552,12 @@
 
   <section class="sec-hdr">
     <h2>Family</h2>
-    <button class="ghost" id="add-member">+ Add member</button>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="ghost" id="export-btn" title="Download family data as JSON">Export</button>
+      <button class="ghost" id="import-btn" title="Load family data from a JSON file">Import</button>
+      <input type="file" id="import-input" accept="application/json,.json" hidden>
+      <button class="ghost" id="add-member">+ Add member</button>
+    </div>
   </section>
 
   <section class="empty" id="empty-state" hidden>
@@ -1440,6 +1445,64 @@ function renderHistory(panel, m) {
   });
 }
 
+function exportData() {
+  const data = {
+    app: 'bmi-bands',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    units: state.units,
+    members: state.members,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `bmi-bands-family-${todayISO()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function importData(file) {
+  const reader = new FileReader();
+  reader.onerror = () => alert('Could not read that file.');
+  reader.onload = () => {
+    let data;
+    try { data = JSON.parse(reader.result); }
+    catch { alert('That file is not valid JSON.'); return; }
+    if (!data || !Array.isArray(data.members)) {
+      alert('That file does not look like a BMI Bands export.');
+      return;
+    }
+    const n = data.members.length;
+    const have = state.members.length;
+    const msg = have > 0
+      ? `Import ${n} family member${n === 1 ? '' : 's'} and replace the current ${have}?`
+      : `Import ${n} family member${n === 1 ? '' : 's'}?`;
+    if (!confirm(msg)) return;
+    const cleaned = data.members.map(m => ({
+      id: m.id || newId(),
+      name: typeof m.name === 'string' ? m.name : 'Member',
+      dob: typeof m.dob === 'string' ? m.dob : null,
+      sex: m.sex === 'male' ? 'male' : 'female',
+      heightCm: typeof m.heightCm === 'number' ? m.heightCm : null,
+      weightKg: typeof m.weightKg === 'number' ? m.weightKg : null,
+      readings: Array.isArray(m.readings)
+        ? m.readings
+            .filter(r => r && typeof r.date === 'string' && typeof r.weightKg === 'number')
+            .map(r => ({ date: r.date, weightKg: r.weightKg }))
+        : [],
+    }));
+    state.members = cleaned;
+    state.units = data.units === 'imperial' ? 'imperial' : 'metric';
+    state.selectedId = cleaned[0] ? cleaned[0].id : null;
+    saveState();
+    renderAll();
+  };
+  reader.readAsText(file);
+}
+
 function renderFooterNotes() {
   $('#inz-note').innerHTML = `Based on <b>Immigration New Zealand Panel Member Instructions (INZ 1216), May 2026</b>. Adults: panel ticks "no significant or abnormal findings" when BMI is in a normal range and ≤ 30. Children: panel records the nearest percentile against standardised growth charts, with CDC charts cited by name. Infants under 2: weight recorded to the nearest 0.1 kg; head circumference below the 3rd centile triggers referral. Source: <a href="https://www.immigration.govt.nz/assets/inz/documents/industry/inz1216.pdf" target="_blank" rel="noopener">immigration.govt.nz/assets/inz/documents/industry/inz1216.pdf</a>.`;
   $('#formula-note').textContent = 'BMI formula per INZ 1216: weight in kilograms divided by height in metres squared.';
@@ -1459,6 +1522,15 @@ function wire() {
 
   $('#add-member').addEventListener('click', addMember);
   $('#add-first').addEventListener('click', addMember);
+
+  $('#export-btn').addEventListener('click', exportData);
+  const importInput = $('#import-input');
+  $('#import-btn').addEventListener('click', () => importInput.click());
+  importInput.addEventListener('change', () => {
+    const file = importInput.files && importInput.files[0];
+    if (file) importData(file);
+    importInput.value = '';
+  });
 
   window.addEventListener('resize', () => {
     state.members.forEach(m => updateRow(m));

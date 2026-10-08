@@ -597,6 +597,107 @@
   }
   td .inz-mark[data-grade="B"] { background: color-mix(in oklab, var(--cat-ob1) 18%, transparent); color: var(--cat-ob1); }
 
+  /* Overview grid */
+
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+  }
+  .ov-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+    position: relative;
+    text-align: left;
+    font: inherit;
+    color: var(--fg);
+  }
+  .ov-card:hover { border-color: var(--border-strong); }
+  .ov-card[data-active="true"] {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 15%, transparent);
+  }
+  .ov-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .ov-head .n { font-weight: 600; font-size: 15px; }
+  .ov-head .sub { font-size: 11px; color: var(--muted); font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-feature-settings: "tnum"; }
+  .ov-chip-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .ov-chip-row .chip { padding: 3px 9px; font-size: 11px; gap: 6px; }
+  .ov-chip-row .chip::before { width: 6px; height: 6px; }
+  .ov-chip-row .inz-chip { padding: 3px 9px; font-size: 11px; }
+  .ov-chip-row .inz-chip .tag { font-size: 10px; padding: 1px 5px; }
+
+  .ov-band {
+    position: relative;
+    display: flex;
+    width: 100%; height: 28px;
+    border-radius: 6px;
+    overflow: visible;
+    margin-top: 24px;
+  }
+  .ov-band--empty {
+    background: var(--surface-2);
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    border-radius: 8px;
+    margin-top: 0;
+  }
+  .ov-seg { height: 100%; }
+  .ov-seg:first-child { border-radius: 6px 0 0 6px; }
+  .ov-seg:last-child  { border-radius: 0 6px 6px 0; }
+  .ov-seg[data-cat="under"]  { background: var(--cat-under); }
+  .ov-seg[data-cat="normal"] { background: var(--cat-normal); }
+  .ov-seg[data-cat="over"]   { background: var(--cat-over); }
+  .ov-seg[data-cat="ob1"]    { background: var(--cat-ob1); }
+  .ov-seg[data-cat="ob2"]    { background: var(--cat-ob2); }
+  .ov-seg[data-cat="ob3"]    { background: var(--cat-ob3); }
+  .ov-safe {
+    position: absolute; top: -4px; bottom: -4px;
+    background: var(--inz-safe); border-radius: 3px;
+    pointer-events: none;
+  }
+  .ov-threshold {
+    position: absolute; top: -6px; bottom: -6px; width: 0;
+    border-left: 1.5px dashed var(--inz-line);
+    pointer-events: none;
+  }
+  .ov-marker {
+    position: absolute; top: -6px; bottom: -6px;
+    width: 2px; background: var(--marker);
+    transform: translateX(-1px);
+    pointer-events: none; z-index: 2;
+  }
+  .ov-marker::before, .ov-marker::after {
+    content: ""; position: absolute; left: 50%;
+    width: 8px; height: 8px; background: var(--marker);
+    transform: translateX(-50%) rotate(45deg);
+  }
+  .ov-marker::before { top: -3px; }
+  .ov-marker::after  { bottom: -3px; }
+  .ov-marker__label {
+    position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%);
+    background: var(--marker); color: var(--bg);
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size: 10px; font-weight: 500;
+    padding: 2px 6px; border-radius: 4px;
+    white-space: nowrap;
+  }
+  .ov-marker__label::after {
+    content: ""; position: absolute; top: 100%; left: 50%;
+    transform: translateX(-50%);
+    border: 3px solid transparent; border-top-color: var(--marker);
+  }
+
   /* History */
 
   .history-wrap { display: flex; flex-direction: column; gap: 12px; }
@@ -685,6 +786,13 @@
       <button class="ghost" id="add-member">+ Add member</button>
     </div>
     <div class="roster" id="roster" style="margin-top:10px"></div>
+  </section>
+
+  <section id="overview-wrap" hidden>
+    <div class="sec-hdr">
+      <h2>At a glance</h2>
+    </div>
+    <div class="overview-grid" id="overview" style="margin-top:10px"></div>
   </section>
 
   <section class="empty" id="empty-state" hidden>
@@ -1067,7 +1175,149 @@ function deleteReading(date) {
 function renderAll() {
   renderUnitToggle();
   renderRoster();
+  renderOverview();
   renderDetail();
+}
+
+function miniBandHtml(m) {
+  const ageYears = ageFromDob(m.dob);
+  const mode = modeFor(ageYears);
+  const h = m.heightCm ? m.heightCm / 100 : null;
+  const w = m.weightKg;
+  const bmi = (h && w) ? w / (h*h) : null;
+
+  if (!h || !w) {
+    return `<div class="ov-band ov-band--empty">Add height and weight to see the band</div>`;
+  }
+  if (mode === 'invalid') {
+    return `<div class="ov-band ov-band--empty">Add date of birth to pick the right band</div>`;
+  }
+  if (mode === 'infant') {
+    return `<div class="ov-band ov-band--empty">Under age 2: not a BMI band — see growth charts</div>`;
+  }
+
+  if (mode === 'adult') {
+    const BAND_MIN = 15, BAND_MAX = 45;
+    const toPct = (b) => ((b - BAND_MIN) / (BAND_MAX - BAND_MIN)) * 100;
+    const segs = [
+      { key:'under', from:15, to:18.5 },
+      { key:'normal', from:18.5, to:25 },
+      { key:'over', from:25, to:30 },
+      { key:'ob1', from:30, to:35 },
+      { key:'ob2', from:35, to:40 },
+      { key:'ob3', from:40, to:45 },
+    ];
+    const safeL = toPct(INZ_BMI_MIN), safeR = toPct(INZ_BMI_MAX);
+    const thrL = toPct(INZ_BMI_MAX);
+    const pos = Math.max(0, Math.min(100, toPct(bmi)));
+    return `<div class="ov-band">
+      <div class="ov-safe" style="left:${safeL}%;width:${safeR-safeL}%"></div>
+      ${segs.map(s => `<div class="ov-seg" data-cat="${s.key}" style="flex-basis:${((s.to-s.from)/(BAND_MAX-BAND_MIN))*100}%"></div>`).join('')}
+      <div class="ov-threshold" style="left:${thrL}%"></div>
+      <div class="ov-marker" style="left:${pos}%"><span class="ov-marker__label">${fmtWeight(w)} · BMI ${bmi.toFixed(1)}</span></div>
+    </div>`;
+  }
+
+  // child
+  const sex = m.sex || 'female';
+  const { L, M, S } = lmsFor(sex, ageYears * 12);
+  const bmi5 = bmiFromZ(Z_P5, L, M, S);
+  const bmi85 = bmiFromZ(Z_P85, L, M, S);
+  const bmi95 = bmiFromZ(Z_P95, L, M, S);
+  const bmi120 = 1.2 * bmi95;
+  const bmiLo = bmiFromZ(-3, L, M, S);
+  const bmiHi = Math.max(bmiFromZ(3, L, M, S), bmi120 * 1.05);
+  const RANGE = bmiHi - bmiLo;
+  const toPct = (b) => ((b - bmiLo) / RANGE) * 100;
+  const segs = [
+    { key:'under',  from: bmiLo,  to: bmi5 },
+    { key:'normal', from: bmi5,   to: bmi85 },
+    { key:'over',   from: bmi85,  to: bmi95 },
+    { key:'ob1',    from: bmi95,  to: bmi120 },
+    { key:'ob2',    from: bmi120, to: bmiHi },
+  ];
+  const safeL = toPct(bmi5), safeR = toPct(bmi85);
+  const pos = Math.max(0, Math.min(100, toPct(bmi)));
+  const pct = normCdf(bmiToZ(bmi, L, M, S)) * 100;
+  return `<div class="ov-band">
+    <div class="ov-safe" style="left:${safeL}%;width:${safeR-safeL}%"></div>
+    ${segs.map(s => `<div class="ov-seg" data-cat="${s.key}" style="flex-basis:${((s.to-s.from)/RANGE)*100}%"></div>`).join('')}
+    <div class="ov-marker" style="left:${pos}%"><span class="ov-marker__label">${fmtWeight(w)} · ${pctLabel(pct)}</span></div>
+  </div>`;
+}
+
+function renderOverview() {
+  const wrap = el('overview-wrap');
+  const grid = el('overview');
+  if (state.members.length === 0) {
+    wrap.hidden = true;
+    grid.innerHTML = '';
+    return;
+  }
+  wrap.hidden = false;
+
+  grid.innerHTML = state.members.map(m => {
+    const bmi = bmiOf(m);
+    const ageYears = ageFromDob(m.dob);
+    const mode = modeFor(ageYears);
+    const h = m.heightCm ? m.heightCm / 100 : null;
+
+    let catKey = 'info', catLabel = '—';
+    let inzGrade = 'info', inzText = '—', inzTag = '';
+    if (bmi !== null) {
+      if (mode === 'adult') {
+        const c = adultCategoryFor(bmi);
+        catKey = c.key; catLabel = c.label;
+        if (bmi >= INZ_BMI_MIN && bmi <= INZ_BMI_MAX) {
+          inzGrade = 'A'; inzText = 'INZ A grade'; inzTag = `${INZ_BMI_MIN}–${INZ_BMI_MAX}`;
+        } else if (bmi > INZ_BMI_MAX) {
+          inzGrade = 'B'; inzText = 'INZ B grade'; inzTag = `> ${INZ_BMI_MAX}`;
+        } else {
+          inzGrade = 'B'; inzText = 'INZ B grade'; inzTag = `< ${INZ_BMI_MIN}`;
+        }
+      } else if (mode === 'child' && h) {
+        const { L, M, S } = lmsFor(m.sex || 'female', ageYears * 12);
+        const c = childCategoryFor(bmi, L, M, S);
+        catKey = c.key; catLabel = c.label;
+        const pct = normCdf(bmiToZ(bmi, L, M, S)) * 100;
+        inzGrade = 'info'; inzText = 'INZ records'; inzTag = pctLabel(pct);
+      } else if (mode === 'infant') {
+        catLabel = 'Infant growth chart';
+      }
+    } else {
+      catLabel = mode === 'infant' ? 'Infant growth chart' : 'Awaiting data';
+    }
+
+    const ageStr = ageYears !== null ? formatAge(ageYears) : 'no DOB';
+    const hStr = h ? (state.units === 'metric' ? `${(h*100).toFixed(0)} cm` : `${mToFtIn(h).ft}′${mToFtIn(h).inch.toFixed(1)}″`) : '—';
+    const active = m.id === state.selectedId;
+
+    return `
+      <button type="button" class="ov-card" data-id="${m.id}" data-active="${active}">
+        <div class="ov-head">
+          <span class="n">${escapeHtml(m.name || 'Unnamed')}</span>
+          <span class="sub">${ageStr} · ${hStr}</span>
+        </div>
+        <div class="ov-chip-row">
+          <span class="inz-chip" data-grade="${inzGrade}">${inzText}${inzTag ? ` <span class="tag">${inzTag}</span>` : ''}</span>
+          <span class="chip" data-cat="${catKey}">${catLabel}</span>
+        </div>
+        ${miniBandHtml(m)}
+      </button>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('.ov-card').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.selectedId = btn.dataset.id;
+      saveState();
+      renderAll();
+      const detail = el('detail');
+      if (detail && typeof detail.scrollIntoView === 'function') {
+        detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
 }
 
 function renderUnitToggle() {
@@ -1624,6 +1874,7 @@ function wire() {
       saveState();
       render();
       renderRoster();
+      renderOverview();
     };
     node.addEventListener('input', handler);
     node.addEventListener('change', handler);
@@ -1638,6 +1889,7 @@ function wire() {
       syncUnitFields();
       render();
       renderRoster();
+      renderOverview();
     });
   });
 
@@ -1652,6 +1904,7 @@ function wire() {
     saveState();
     logWeight();
     renderRoster();
+    renderOverview();
   });
 
   window.addEventListener('resize', () => render());

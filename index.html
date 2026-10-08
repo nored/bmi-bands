@@ -1,0 +1,1671 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BMI Bands</title>
+<link rel="icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230f6b64'/%3E%3Ctext x='16' y='21' font-family='sans-serif' font-size='16' font-weight='700' fill='white' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f5f5f1;
+    --surface: #ffffff;
+    --surface-2: #faf9f5;
+    --fg: #15181b;
+    --muted: #6b7076;
+    --faint: #a8adb2;
+    --border: #e2e2dc;
+    --border-strong: #cfcfc8;
+    --input-bg: #ffffff;
+    --input-focus: #0f6b64;
+    --accent: #0f6b64;
+
+    --cat-under: #4a86c4;
+    --cat-normal: #3a9460;
+    --cat-over:  #d7a442;
+    --cat-ob1:   #d87748;
+    --cat-ob2:   #c45440;
+    --cat-ob3:   #8c3030;
+
+    --marker: #15181b;
+    --inz-line: #15181b;
+    --inz-safe: rgba(58, 148, 96, 0.14);
+
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1113;
+      --surface: #171a1d;
+      --surface-2: #1b1e22;
+      --fg: #ececea;
+      --muted: #9298a0;
+      --faint: #5a6066;
+      --border: #272a2e;
+      --border-strong: #363a3f;
+      --input-bg: #1c1f23;
+      --input-focus: #35b7ad;
+      --accent: #35b7ad;
+
+      --cat-under: #5aa5ea;
+      --cat-normal: #55b981;
+      --cat-over:  #e5b85a;
+      --cat-ob1:   #e58857;
+      --cat-ob2:   #d85f4b;
+      --cat-ob3:   #a84142;
+
+      --marker: #f6f6f3;
+      --inz-line: #f6f6f3;
+      --inz-safe: rgba(85, 185, 129, 0.14);
+
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0f1113;
+    --surface: #171a1d;
+    --surface-2: #1b1e22;
+    --fg: #ececea;
+    --muted: #9298a0;
+    --faint: #5a6066;
+    --border: #272a2e;
+    --border-strong: #363a3f;
+    --input-bg: #1c1f23;
+    --input-focus: #35b7ad;
+    --accent: #35b7ad;
+
+    --cat-under: #5aa5ea;
+    --cat-normal: #55b981;
+    --cat-over:  #e5b85a;
+    --cat-ob1:   #e58857;
+    --cat-ob2:   #d85f4b;
+    --cat-ob3:   #a84142;
+
+    --marker: #f6f6f3;
+    --inz-line: #f6f6f3;
+    --inz-safe: rgba(85, 185, 129, 0.14);
+
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .app {
+    max-width: 960px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 24px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent);
+    flex-shrink: 0;
+  }
+  .brand .names { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .brand h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .brand .sub { font-size: 12px; color: var(--muted); font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; }
+
+  .unit-toggle {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+  }
+  .unit-toggle button {
+    background: transparent; border: 0;
+    color: var(--muted);
+    padding: 7px 14px;
+    font: inherit; font-size: 13px; font-weight: 500;
+    border-radius: 999px; cursor: pointer;
+  }
+  .unit-toggle button[aria-selected="true"] { background: var(--fg); color: var(--bg); }
+
+  /* Section header */
+
+  .sec-hdr { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .sec-hdr h2 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--muted); }
+
+  button.ghost {
+    background: transparent; border: 1px solid var(--border-strong);
+    color: var(--fg);
+    font: inherit; font-size: 13px; font-weight: 500;
+    padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  }
+  button.ghost:hover { border-color: var(--fg); }
+  button.danger {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); font: inherit; font-size: 12px;
+    padding: 5px 10px; border-radius: 8px; cursor: pointer;
+  }
+  button.danger:hover { border-color: var(--cat-ob2); color: var(--cat-ob2); }
+  button.primary {
+    background: var(--accent); border: 0;
+    color: #fff; font: inherit; font-weight: 500;
+    padding: 10px 18px; border-radius: 10px; cursor: pointer;
+  }
+
+  /* Family roster */
+
+  .roster {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+  }
+  .roster::-webkit-scrollbar { height: 6px; }
+  .roster::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .m-card {
+    flex-shrink: 0;
+    width: 150px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+    font: inherit;
+    color: var(--fg);
+    position: relative;
+  }
+  .m-card:hover { border-color: var(--border-strong); }
+  .m-card[data-active="true"] {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 15%, transparent);
+  }
+  .m-card .initial {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--accent) 20%, transparent);
+    color: var(--accent);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  .m-card .m-name {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .m-card .m-sub { font-size: 11px; color: var(--muted); font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-feature-settings: "tnum"; }
+  .m-card .m-bmi {
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size: 20px; font-weight: 500;
+    letter-spacing: -0.01em;
+    font-feature-settings: "tnum";
+  }
+  .m-card .m-chip {
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 3px 7px; border-radius: 999px;
+    background: color-mix(in oklab, var(--cat-color, var(--muted)) 15%, transparent);
+    color: var(--cat-color, var(--muted));
+    width: fit-content;
+  }
+  .m-card[data-cat="under"]  { --cat-color: var(--cat-under); }
+  .m-card[data-cat="normal"] { --cat-color: var(--cat-normal); }
+  .m-card[data-cat="over"]   { --cat-color: var(--cat-over); }
+  .m-card[data-cat="ob1"]    { --cat-color: var(--cat-ob1); }
+  .m-card[data-cat="ob2"]    { --cat-color: var(--cat-ob2); }
+  .m-card[data-cat="ob3"]    { --cat-color: var(--cat-ob3); }
+  .m-card[data-cat="info"]   { --cat-color: var(--muted); }
+
+  .m-add {
+    flex-shrink: 0;
+    min-width: 150px;
+    background: transparent;
+    border: 1.5px dashed var(--border-strong);
+    border-radius: 12px;
+    color: var(--muted);
+    font: inherit; font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .m-add:hover { color: var(--fg); border-color: var(--fg); }
+
+  /* Empty state */
+
+  .empty {
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 36px;
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: 14px;
+    text-align: center;
+    align-items: center;
+  }
+  .empty p { margin: 0; color: var(--muted); }
+
+  /* Detail inputs */
+
+  .detail__hdr {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .name-input {
+    background: transparent;
+    border: 0;
+    border-bottom: 1.5px dashed transparent;
+    font: inherit;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--fg);
+    padding: 2px 0;
+    min-width: 160px;
+    letter-spacing: -0.01em;
+  }
+  .name-input:hover { border-bottom-color: var(--border-strong); }
+  .name-input:focus-visible { outline: 0; border-bottom-color: var(--accent); }
+
+  .inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .field label {
+    font-size: 12px; font-weight: 500; color: var(--muted);
+    letter-spacing: 0.02em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .field .row { display: flex; align-items: baseline; gap: 8px; position: relative; }
+  .field input, .field select {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--fg);
+    font: inherit; font-weight: 500;
+    font-feature-settings: "tnum";
+    padding: 10px 12px;
+    min-width: 0;
+  }
+  .field input:focus-visible, .field select:focus-visible {
+    outline: 2px solid var(--input-focus); outline-offset: 1px; border-color: transparent;
+  }
+  .field.has-unit .unit {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    font-size: 12px; color: var(--faint); pointer-events: none;
+  }
+  .field.split-field .row { display: grid; grid-template-columns: 1fr auto 1fr auto; gap: 6px; align-items: center; }
+  .field.split-field .unit { position: static; transform: none; font-size: 12px; color: var(--faint); }
+  .field.age-field {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    gap: 2px;
+  }
+  .field.age-field .age-val {
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-weight: 500;
+    font-feature-settings: "tnum";
+  }
+
+  /* Result */
+
+  .result {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  @media (max-width: 540px) { .result { grid-template-columns: 1fr; gap: 16px; } }
+
+  .result__bmi { display: flex; flex-direction: column; gap: 4px; line-height: 1; }
+  .result__bmi .label { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .result__bmi .value {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 72px; font-weight: 500; letter-spacing: -0.03em;
+    font-feature-settings: "tnum";
+  }
+  .result__bmi .pct {
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size: 14px; font-weight: 500; color: var(--muted);
+    font-feature-settings: "tnum";
+    margin-top: 4px;
+  }
+  .result__bmi .pct b { color: var(--fg); font-weight: 600; }
+
+  .result__cat { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .result__cat .chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    width: fit-content;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px; font-weight: 600;
+    background: color-mix(in oklab, var(--cat-color, var(--accent)) 15%, transparent);
+    color: var(--cat-color, var(--accent));
+    border: 1px solid color-mix(in oklab, var(--cat-color, var(--accent)) 35%, transparent);
+  }
+  .chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--cat-color, var(--accent)); }
+  .chip[data-cat="under"]  { --cat-color: var(--cat-under); }
+  .chip[data-cat="normal"] { --cat-color: var(--cat-normal); }
+  .chip[data-cat="over"]   { --cat-color: var(--cat-over); }
+  .chip[data-cat="ob1"]    { --cat-color: var(--cat-ob1); }
+  .chip[data-cat="ob2"]    { --cat-color: var(--cat-ob2); }
+  .chip[data-cat="ob3"]    { --cat-color: var(--cat-ob3); }
+  .chip[data-cat="info"]   { --cat-color: var(--muted); }
+
+  .inz-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px; font-weight: 600;
+    background: var(--chip-bg);
+    color: var(--chip-fg);
+    border: 1px solid var(--chip-br);
+  }
+  .inz-chip[data-grade="A"] {
+    --chip-bg: color-mix(in oklab, var(--cat-normal) 18%, transparent);
+    --chip-fg: var(--cat-normal);
+    --chip-br: color-mix(in oklab, var(--cat-normal) 40%, transparent);
+  }
+  .inz-chip[data-grade="B"] {
+    --chip-bg: color-mix(in oklab, var(--cat-ob1) 18%, transparent);
+    --chip-fg: var(--cat-ob1);
+    --chip-br: color-mix(in oklab, var(--cat-ob1) 40%, transparent);
+  }
+  .inz-chip[data-grade="info"] {
+    --chip-bg: color-mix(in oklab, var(--muted) 14%, transparent);
+    --chip-fg: var(--muted);
+    --chip-br: color-mix(in oklab, var(--muted) 30%, transparent);
+  }
+  .inz-chip .tag {
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size: 11px; font-weight: 500;
+    padding: 2px 6px;
+    background: color-mix(in oklab, var(--chip-fg) 18%, transparent);
+    border-radius: 4px;
+  }
+
+  .result__detail { margin: 0; font-size: 14.5px; color: var(--fg); }
+  .result__detail .mono {
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-weight: 500; font-feature-settings: "tnum";
+  }
+  .mode-note { font-size: 12.5px; color: var(--muted); font-feature-settings: "tnum"; }
+
+  /* Band */
+
+  .band { display: flex; flex-direction: column; gap: 10px; }
+  .band__header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .band__header h2 { margin: 0; font-size: 16px; font-weight: 600; }
+  .band__hint {
+    font-size: 13px; color: var(--muted);
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-feature-settings: "tnum";
+  }
+
+  .band__bar {
+    position: relative;
+    display: flex;
+    width: 100%; height: 56px;
+    border-radius: 10px;
+    overflow: visible;
+    margin-top: 48px;
+  }
+
+  .seg { height: 100%; }
+  .seg:first-child { border-radius: 10px 0 0 10px; }
+  .seg:last-child  { border-radius: 0 10px 10px 0; }
+
+  .seg[data-cat="under"]  { background: var(--cat-under); }
+  .seg[data-cat="normal"] { background: var(--cat-normal); }
+  .seg[data-cat="over"]   { background: var(--cat-over); }
+  .seg[data-cat="ob1"]    { background: var(--cat-ob1); }
+  .seg[data-cat="ob2"]    { background: var(--cat-ob2); }
+  .seg[data-cat="ob3"]    { background: var(--cat-ob3); }
+
+  .inz-threshold {
+    position: absolute;
+    top: -40px; bottom: -22px;
+    width: 0;
+    border-left: 2px dashed var(--inz-line);
+    pointer-events: none;
+  }
+  .inz-threshold__label {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size: 10px; font-weight: 500;
+    color: var(--inz-line);
+    background: var(--bg);
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 2px;
+  }
+  .inz-safe {
+    position: absolute;
+    top: -8px; bottom: -8px;
+    background: var(--inz-safe);
+    pointer-events: none;
+    border-radius: 4px;
+  }
+
+  .marker {
+    position: absolute; top: -14px; bottom: -14px;
+    width: 2px; background: var(--marker);
+    transform: translateX(-1px);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .marker::before, .marker::after {
+    content: ""; position: absolute; left: 50%;
+    width: 10px; height: 10px; background: var(--marker);
+    transform: translateX(-50%) rotate(45deg);
+  }
+  .marker::before { top: -4px; }
+  .marker::after  { bottom: -4px; }
+
+  .marker__label {
+    position: absolute; bottom: calc(100% + 12px); left: 50%;
+    transform: translateX(-50%);
+    background: var(--marker); color: var(--bg);
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size: 12px; font-weight: 500; font-feature-settings: "tnum";
+    padding: 4px 8px; border-radius: 6px;
+    white-space: nowrap;
+  }
+  .marker__label::after {
+    content: ""; position: absolute; top: 100%; left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent; border-top-color: var(--marker);
+  }
+
+  .band__ticks {
+    position: relative; height: 36px;
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size: 11px; color: var(--muted);
+    font-feature-settings: "tnum";
+  }
+  .band__ticks .tick {
+    position: absolute; top: 0;
+    transform: translateX(-50%);
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .band__ticks .tick::before { content: ""; width: 1px; height: 6px; background: var(--border); }
+  .band__ticks .tick .wt { color: var(--fg); font-weight: 500; }
+  .band__ticks .tick .sub { color: var(--faint); font-size: 10px; }
+
+  .band__legend {
+    display: flex; flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 12px; color: var(--muted);
+    margin-top: 2px;
+  }
+  .band__legend > div { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 10px; height: 10px; border-radius: 2px; }
+  .sw[data-cat="under"]  { background: var(--cat-under); }
+  .sw[data-cat="normal"] { background: var(--cat-normal); }
+  .sw[data-cat="over"]   { background: var(--cat-over); }
+  .sw[data-cat="ob1"]    { background: var(--cat-ob1); }
+  .sw[data-cat="ob2"]    { background: var(--cat-ob2); }
+  .sw[data-cat="ob3"]    { background: var(--cat-ob3); }
+  .sw.safe-swatch { background: var(--inz-safe); border: 1px solid color-mix(in oklab, var(--cat-normal) 50%, transparent); }
+  .sw.line-swatch { background: transparent; border-left: 2px dashed var(--inz-line); border-radius: 0; width: 2px; margin: 0 4px; }
+
+  /* Table */
+
+  .table-wrap {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow-x: auto;
+    background: var(--surface);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; font-feature-settings: "tnum"; }
+  thead th {
+    text-align: left; font-weight: 500; color: var(--muted);
+    font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+  }
+  tbody td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr[data-active="true"] { background: color-mix(in oklab, var(--cat-color, var(--accent)) 10%, transparent); }
+  tbody tr[data-active="true"] td:first-child { box-shadow: inset 3px 0 0 var(--cat-color, var(--accent)); }
+  tbody tr[data-cat="under"]  { --cat-color: var(--cat-under); }
+  tbody tr[data-cat="normal"] { --cat-color: var(--cat-normal); }
+  tbody tr[data-cat="over"]   { --cat-color: var(--cat-over); }
+  tbody tr[data-cat="ob1"]    { --cat-color: var(--cat-ob1); }
+  tbody tr[data-cat="ob2"]    { --cat-color: var(--cat-ob2); }
+  tbody tr[data-cat="ob3"]    { --cat-color: var(--cat-ob3); }
+
+  td .cat-name { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; }
+  td .dot-cat { width: 10px; height: 10px; border-radius: 50%; background: var(--cat-color, var(--accent)); }
+  td.num { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-weight: 500; color: var(--fg); }
+  td.sub-cell { color: var(--muted); font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; }
+  td .inz-mark {
+    display: inline-block;
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size: 11px; font-weight: 500;
+    padding: 2px 6px; border-radius: 4px;
+    margin-left: 6px;
+    background: color-mix(in oklab, var(--cat-normal) 16%, transparent);
+    color: var(--cat-normal);
+  }
+  td .inz-mark[data-grade="B"] { background: color-mix(in oklab, var(--cat-ob1) 18%, transparent); color: var(--cat-ob1); }
+
+  /* History */
+
+  .history-wrap { display: flex; flex-direction: column; gap: 12px; }
+  .history-chart {
+    width: 100%;
+    height: 110px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .history-list {
+    display: flex; flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .history-list .row {
+    display: grid;
+    grid-template-columns: 120px 1fr 1fr auto;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    font-size: 14px;
+    font-feature-settings: "tnum";
+  }
+  .history-list .row:last-child { border-bottom: 0; }
+  .history-list .row .d { color: var(--muted); font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-size: 13px; }
+  .history-list .row .w { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-weight: 500; }
+  .history-list .row .b { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; color: var(--muted); font-size: 13px; }
+  .history-list .empty-row { padding: 16px; color: var(--muted); text-align: center; }
+
+  @media (max-width: 500px) {
+    .history-list .row { grid-template-columns: 1fr 1fr auto; }
+    .history-list .row .b { display: none; }
+  }
+
+  .notes {
+    display: flex; flex-direction: column; gap: 10px;
+    font-size: 13px; color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+  .notes p { margin: 0; }
+  .notes a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+  .notes .warn {
+    color: var(--fg);
+    background: color-mix(in oklab, var(--cat-over) 18%, transparent);
+    border-left: 3px solid var(--cat-over);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+  }
+  .notes .stop {
+    color: var(--fg);
+    background: color-mix(in oklab, var(--cat-ob2) 18%, transparent);
+    border-left: 3px solid var(--cat-ob2);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .marker, .marker__label, .seg, .inz-threshold, .inz-safe { transition: left 180ms ease, flex-basis 180ms ease, width 180ms ease; }
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="hdr">
+    <div class="brand">
+      <span class="dot" aria-hidden="true"></span>
+      <div class="names">
+        <h1>BMI Bands</h1>
+        <span class="sub">INZ panel medical overview</span>
+      </div>
+    </div>
+    <div class="unit-toggle" role="tablist" aria-label="Units">
+      <button type="button" role="tab" data-units="metric" aria-selected="true">kg · cm</button>
+      <button type="button" role="tab" data-units="imperial" aria-selected="false">lb · ft</button>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-hdr">
+      <h2>Family</h2>
+      <button class="ghost" id="add-member">+ Add member</button>
+    </div>
+    <div class="roster" id="roster" style="margin-top:10px"></div>
+  </section>
+
+  <section class="empty" id="empty-state" hidden>
+    <p>No family members yet. Everything you add stays in your browser — nothing is sent anywhere.</p>
+    <button class="primary" id="add-first">+ Add first member</button>
+  </section>
+
+  <section id="detail" hidden style="display:flex;flex-direction:column;gap:28px">
+    <div class="detail__hdr">
+      <input type="text" id="name" class="name-input" placeholder="Name">
+      <button class="danger" id="delete-member">Remove</button>
+    </div>
+
+    <section class="inputs" aria-label="Measurements">
+      <div class="field">
+        <label for="dob">Date of birth</label>
+        <div class="row"><input id="dob" type="date"></div>
+      </div>
+
+      <div class="field age-field">
+        <label>Age</label>
+        <div class="age-val" id="age-display">—</div>
+      </div>
+
+      <div class="field">
+        <label for="sex">Sex at birth</label>
+        <div class="row">
+          <select id="sex">
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field has-unit" data-group="metric" id="field-h-cm">
+        <label for="height-cm">Height</label>
+        <div class="row">
+          <input id="height-cm" type="text" inputmode="decimal" placeholder="170">
+          <span class="unit">cm</span>
+        </div>
+      </div>
+
+      <div class="field split-field" data-group="imperial" id="field-h-ft" hidden>
+        <label>Height</label>
+        <div class="row">
+          <input id="height-ft" type="text" inputmode="numeric" placeholder="5" aria-label="Feet">
+          <span class="unit">ft</span>
+          <input id="height-in" type="text" inputmode="decimal" placeholder="7" aria-label="Inches">
+          <span class="unit">in</span>
+        </div>
+      </div>
+
+      <div class="field has-unit" data-group="metric" id="field-w-kg">
+        <label for="weight-kg">Current weight</label>
+        <div class="row">
+          <input id="weight-kg" type="text" inputmode="decimal" placeholder="70">
+          <span class="unit">kg</span>
+        </div>
+      </div>
+
+      <div class="field has-unit" data-group="imperial" id="field-w-lb" hidden>
+        <label for="weight-lb">Current weight</label>
+        <div class="row">
+          <input id="weight-lb" type="text" inputmode="decimal" placeholder="154">
+          <span class="unit">lb</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="result" aria-live="polite">
+      <div class="result__bmi">
+        <span class="label" id="main-label">BMI</span>
+        <span class="value" id="bmi-value">—</span>
+        <span class="pct" id="pct-line" hidden></span>
+      </div>
+      <div class="result__cat">
+        <div class="chips">
+          <span class="inz-chip" id="inz-chip" data-grade="info">—</span>
+          <span class="chip" id="cat-chip" data-cat="info">—</span>
+        </div>
+        <p class="result__detail" id="result-detail">Enter the measurements to see the reading.</p>
+        <p class="mode-note" id="mode-note" hidden></p>
+      </div>
+    </section>
+
+    <section class="band" aria-label="Weight band at this height">
+      <div class="band__header">
+        <h2 id="band-title">Weight band at this height</h2>
+        <span class="band__hint" id="height-hint">—</span>
+      </div>
+      <div class="band__bar" id="band-bar"></div>
+      <div class="band__ticks" id="band-ticks"></div>
+      <div class="band__legend" id="band-legend"></div>
+    </section>
+
+    <section class="table-wrap">
+      <table id="ranges">
+        <thead>
+          <tr><th>Category</th><th id="th-mid">BMI</th><th>Weight at this height</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="history-wrap">
+      <div class="sec-hdr">
+        <h2>Weight history</h2>
+        <button class="ghost" id="log-weight">+ Log today's weight</button>
+      </div>
+      <svg class="history-chart" id="history-chart" viewBox="0 0 600 110" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="history-list" id="history-list"></div>
+    </section>
+  </section>
+
+  <section class="notes" id="notes">
+    <p class="stop" id="age-stop" hidden></p>
+    <p class="warn" id="age-warn" hidden></p>
+    <p id="inz-note"></p>
+    <p id="formula-note"></p>
+    <p id="source-note"></p>
+    <p>Everything you enter stays in this browser (localStorage). Clearing site data erases the family list. Nothing is sent to a server.</p>
+  </section>
+</main>
+
+<script>
+// CDC BMI-for-age LMS parameters (ages 24–240.5 months). Source: CDC bmiagerev.csv (NHANES 2000 revised). INZ 1216 (May 2026) cites CDC growth charts for child height/weight assessment.
+const CDC_MALE = [[24.0,-2.011181,16.57503,0.0805925],[24.5,-1.982374,16.54777,0.0801274],[25.5,-1.9241,16.49443,0.079234],[26.5,-1.865498,16.4426,0.0783894],[27.5,-1.807262,16.39224,0.0775935],[28.5,-1.750119,16.34334,0.0768465],[29.5,-1.694816,16.29584,0.0761483],[30.5,-1.642107,16.24972,0.0754991],[31.5,-1.592744,16.20495,0.074899],[32.5,-1.547442,16.1615,0.074348],[33.5,-1.506903,16.11933,0.0738461],[34.5,-1.47177,16.07843,0.0733934],[35.5,-1.442629,16.03876,0.0729896],[36.5,-1.419991,16.0003,0.0726344],[37.5,-1.404278,15.96304,0.0723276],[38.5,-1.395863,15.92695,0.0720686],[39.5,-1.394935,15.89203,0.0718568],[40.5,-1.401672,15.85824,0.0716913],[41.5,-1.4161,15.82559,0.0715711],[42.5,-1.438165,15.79406,0.0714951],[43.5,-1.467669,15.76364,0.0714621],[44.5,-1.504376,15.73434,0.0714706],[45.5,-1.547943,15.70614,0.0715192],[46.5,-1.597896,15.67904,0.0716063],[47.5,-1.653732,15.65305,0.0717302],[48.5,-1.714869,15.62817,0.0718892],[49.5,-1.780673,15.60441,0.0720817],[50.5,-1.850468,15.58176,0.0723061],[51.5,-1.923552,15.56025,0.0725606],[52.5,-1.99922,15.53987,0.0728438],[53.5,-2.076707,15.52065,0.0731543],[54.5,-2.155348,15.50258,0.0734907],[55.5,-2.234439,15.48569,0.0738517],[56.5,-2.313322,15.46998,0.0742362],[57.5,-2.391381,15.45546,0.0746434],[58.5,-2.468032,15.44214,0.0750723],[59.5,-2.542782,15.43003,0.0755221],[60.5,-2.615166,15.41914,0.0759922],[61.5,-2.68479,15.40947,0.0764821],[62.5,-2.751317,15.40103,0.0769912],[63.5,-2.814459,15.39382,0.0775191],[64.5,-2.874025,15.38783,0.0780654],[65.5,-2.92984,15.38307,0.0786296],[66.5,-2.981797,15.37953,0.0792114],[67.5,-3.029831,15.37721,0.0798103],[68.5,-3.073924,15.37609,0.0804261],[69.5,-3.114093,15.37618,0.0810582],[70.5,-3.15039,15.37745,0.0817062],[71.5,-3.182893,15.37991,0.0823697],[72.5,-3.211705,15.38353,0.0830482],[73.5,-3.236948,15.38831,0.083741],[74.5,-3.25876,15.39423,0.0844477],[75.5,-3.277282,15.40127,0.0851677],[76.5,-3.292684,15.40943,0.0859002],[77.5,-3.305124,15.41869,0.0866447],[78.5,-3.314769,15.42902,0.0874004],[79.5,-3.321786,15.44042,0.0881667],[80.5,-3.326346,15.45288,0.0889429],[81.5,-3.328603,15.46636,0.0897282],[82.5,-3.328725,15.48087,0.0905219],[83.5,-3.32687,15.49637,0.0913232],[84.5,-3.323189,15.51287,0.0921313],[85.5,-3.317827,15.53034,0.0929455],[86.5,-3.310924,15.54876,0.0937651],[87.5,-3.302612,15.56812,0.0945893],[88.5,-3.293018,15.58841,0.0954172],[89.5,-3.282261,15.60961,0.0962483],[90.5,-3.270455,15.63171,0.0970817],[91.5,-3.257704,15.65469,0.0979167],[92.5,-3.244108,15.67853,0.0987526],[93.5,-3.229762,15.70323,0.0995887],[94.5,-3.214751,15.72877,0.1004243],[95.5,-3.199158,15.75513,0.1012586],[96.5,-3.183058,15.78231,0.1020912],[97.5,-3.166521,15.81029,0.1029212],[98.5,-3.14961,15.83905,0.1037482],[99.5,-3.13239,15.86858,0.1045714],[100.5,-3.114911,15.89888,0.1053903],[101.5,-3.097226,15.92992,0.1062043],[102.5,-3.079383,15.96169,0.1070128],[103.5,-3.061424,15.99419,0.1078153],[104.5,-3.043386,16.02741,0.1086114],[105.5,-3.02531,16.06132,0.1094004],[106.5,-3.007226,16.09591,0.1101819],[107.5,-2.989165,16.13119,0.1109555],[108.5,-2.971148,16.16712,0.1117207],[109.5,-2.953208,16.20371,0.1124771],[110.5,-2.935364,16.24094,0.1132242],[111.5,-2.917635,16.2788,0.1139617],[112.5,-2.90004,16.31728,0.1146893],[113.5,-2.882594,16.35637,0.1154065],[114.5,-2.865311,16.39606,0.1161131],[115.5,-2.848205,16.43633,0.1168087],[116.5,-2.831285,16.47718,0.117493],[117.5,-2.814562,16.5186,0.1181658],[118.5,-2.798043,16.56057,0.1188268],[119.5,-2.781737,16.60309,0.1194758],[120.5,-2.765648,16.64614,0.1201125],[121.5,-2.749782,16.68972,0.1207367],[122.5,-2.734142,16.73381,0.1213482],[123.5,-2.718733,16.7784,0.1219468],[124.5,-2.703556,16.8235,0.1225325],[125.5,-2.688612,16.86907,0.123105],[126.5,-2.673903,16.91512,0.1236642],[127.5,-2.659429,16.96164,0.12421],[128.5,-2.645191,17.00862,0.1247422],[129.5,-2.631186,17.05604,0.1252609],[130.5,-2.617414,17.1039,0.1257659],[131.5,-2.603872,17.15218,0.1262571],[132.5,-2.59056,17.20089,0.1267346],[133.5,-2.577474,17.25,0.1271983],[134.5,-2.564612,17.29951,0.1276481],[135.5,-2.55197,17.34942,0.128084],[136.5,-2.53954,17.3997,0.1285062],[137.5,-2.527326,17.45036,0.1289145],[138.5,-2.51532,17.50138,0.129309],[139.5,-2.503519,17.55276,0.1296897],[140.5,-2.491919,17.60448,0.1300568],[141.5,-2.480514,17.65653,0.1304101],[142.5,-2.4693,17.70892,0.1307499],[143.5,-2.458273,17.76162,0.1310762],[144.5,-2.447426,17.81463,0.131389],[145.5,-2.436756,17.86795,0.1316886],[146.5,-2.426256,17.92155,0.1319749],[147.5,-2.415922,17.97544,0.1322481],[148.5,-2.405748,18.02961,0.1325084],[149.5,-2.395728,18.08404,0.1327558],[150.5,-2.385858,18.13873,0.1329906],[151.5,-2.376131,18.19367,0.1332128],[152.5,-2.366543,18.24884,0.1334226],[153.5,-2.357087,18.30426,0.1336202],[154.5,-2.347758,18.35989,0.1338058],[155.5,-2.33855,18.41574,0.1339795],[156.5,-2.329457,18.4718,0.1341415],[157.5,-2.320475,18.52805,0.134292],[158.5,-2.311596,18.5845,0.1344313],[159.5,-2.302817,18.64113,0.1345594],[160.5,-2.294131,18.69793,0.1346767],[161.5,-2.285533,18.75489,0.1347834],[162.5,-2.277017,18.81202,0.1348796],[163.5,-2.268579,18.86929,0.1349656],[164.5,-2.260212,18.9267,0.1350417],[165.5,-2.251912,18.98424,0.135108],[166.5,-2.243673,19.04191,0.1351649],[167.5,-2.235492,19.0997,0.1352125],[168.5,-2.227362,19.15759,0.1352511],[169.5,-2.21928,19.21558,0.135281],[170.5,-2.21124,19.27366,0.1353024],[171.5,-2.203239,19.33182,0.1353156],[172.5,-2.195272,19.39006,0.1353208],[173.5,-2.187336,19.44837,0.1353184],[174.5,-2.179426,19.50673,0.1353086],[175.5,-2.171539,19.56514,0.1352917],[176.5,-2.163672,19.6236,0.1352679],[177.5,-2.155821,19.68208,0.1352376],[178.5,-2.147985,19.7406,0.135201],[179.5,-2.14016,19.79912,0.1351584],[180.5,-2.132345,19.85766,0.1351102],[181.5,-2.124537,19.9162,0.1350565],[182.5,-2.116736,19.97473,0.1349978],[183.5,-2.108939,20.03324,0.1349343],[184.5,-2.101147,20.09172,0.1348663],[185.5,-2.093359,20.15017,0.1347941],[186.5,-2.085574,20.20858,0.1347181],[187.5,-2.077795,20.26694,0.1346385],[188.5,-2.070021,20.32524,0.1345557],[189.5,-2.062253,20.38346,0.1344699],[190.5,-2.054495,20.44162,0.1343816],[191.5,-2.046748,20.49968,0.1342909],[192.5,-2.039015,20.55765,0.1341983],[193.5,-2.0313,20.61551,0.1341041],[194.5,-2.023607,20.67326,0.1340086],[195.5,-2.015942,20.73089,0.1339121],[196.5,-2.008306,20.78839,0.133815],[197.5,-2.000706,20.84574,0.1337176],[198.5,-1.99315,20.90294,0.1336202],[199.5,-1.985644,20.95999,0.1335232],[200.5,-1.978195,21.01686,0.133427],[201.5,-1.97081,21.07356,0.1333319],[202.5,-1.9635,21.13007,0.1332382],[203.5,-1.956271,21.18638,0.1331464],[204.5,-1.949135,21.24248,0.1330567],[205.5,-1.9421,21.29836,0.1329695],[206.5,-1.935177,21.35402,0.1328853],[207.5,-1.928377,21.40944,0.1328043],[208.5,-1.921712,21.46461,0.132727],[209.5,-1.915193,21.51952,0.1326537],[210.5,-1.908831,21.57417,0.1325848],[211.5,-1.902639,21.62854,0.1325207],[212.5,-1.89663,21.68262,0.1324618],[213.5,-1.890816,21.7364,0.1324086],[214.5,-1.88521,21.78988,0.1323613],[215.5,-1.879824,21.84304,0.1323204],[216.5,-1.87467,21.89587,0.1322864],[217.5,-1.86976,21.94836,0.1322596],[218.5,-1.865113,22.00051,0.1322404],[219.5,-1.860735,22.05229,0.1322293],[220.5,-1.856634,22.10371,0.1322268],[221.5,-1.852827,22.15476,0.1322332],[222.5,-1.849323,22.20541,0.132249],[223.5,-1.846132,22.25567,0.1322746],[224.5,-1.843261,22.30553,0.1323105],[225.5,-1.84072,22.35497,0.1323572],[226.5,-1.838515,22.40399,0.1324151],[227.5,-1.836656,22.45257,0.1324846],[228.5,-1.835138,22.50072,0.1325664],[229.5,-1.833972,22.54841,0.1326607],[230.5,-1.833158,22.59565,0.1327682],[231.5,-1.832696,22.64243,0.1328892],[232.5,-1.832584,22.68873,0.1330244],[233.5,-1.832821,22.73456,0.1331741],[234.5,-1.833401,22.7799,0.133339],[235.5,-1.834317,22.82474,0.1335195],[236.5,-1.835558,22.86909,0.1337162],[237.5,-1.837119,22.91293,0.1339295],[238.5,-1.838987,22.95626,0.1341601],[239.5,-1.841146,22.99908,0.1344084],[240.0,-1.84233,23.02029,0.1345394],[240.5,-1.843581,23.04138,0.134675]];
+const CDC_FEMALE = [[24.0,-0.986609,16.4234,0.0854518],[24.5,-1.024497,16.38804,0.0850258],[25.5,-1.102698,16.31897,0.0842141],[26.5,-1.183966,16.25208,0.0834551],[27.5,-1.268071,16.18735,0.0827483],[28.5,-1.354752,16.12475,0.0820927],[29.5,-1.44369,16.06429,0.0814877],[30.5,-1.534542,16.00593,0.0809324],[31.5,-1.626928,15.94967,0.0804262],[32.5,-1.720435,15.89548,0.0799682],[33.5,-1.814635,15.84336,0.0795577],[34.5,-1.909076,15.79329,0.0791942],[35.5,-2.003296,15.74526,0.0788769],[36.5,-2.096829,15.69924,0.0786053],[37.5,-2.189212,15.65523,0.0783787],[38.5,-2.279992,15.61321,0.0781967],[39.5,-2.368733,15.57317,0.0780587],[40.5,-2.455021,15.53508,0.0779642],[41.5,-2.538472,15.49893,0.0779127],[42.5,-2.618733,15.4647,0.0779037],[43.5,-2.695489,15.43238,0.0779368],[44.5,-2.768465,15.40193,0.0780113],[45.5,-2.837427,15.37335,0.0781268],[46.5,-2.902178,15.34661,0.0782827],[47.5,-2.96258,15.32168,0.0784784],[48.5,-3.018522,15.29855,0.0787133],[49.5,-3.069937,15.27719,0.0789867],[50.5,-3.116796,15.25757,0.0792978],[51.5,-3.159107,15.23967,0.079646],[52.5,-3.196911,15.22347,0.0800304],[53.5,-3.230277,15.20894,0.0804501],[54.5,-3.2593,15.19606,0.0809044],[55.5,-3.2841,15.1848,0.0813922],[56.5,-3.304814,15.17513,0.0819126],[57.5,-3.321597,15.16703,0.0824647],[58.5,-3.334616,15.16047,0.0830473],[59.5,-3.344048,15.15543,0.0836595],[60.5,-3.350078,15.15188,0.0843001],[61.5,-3.352894,15.1498,0.0849682],[62.5,-3.352691,15.14917,0.0856625],[63.5,-3.349664,15.14995,0.086382],[64.5,-3.343999,15.15213,0.0871256],[65.5,-3.33589,15.15567,0.087892],[66.5,-3.325522,15.16056,0.0886803],[67.5,-3.313078,15.16678,0.0894891],[68.5,-3.298733,15.17429,0.0903174],[69.5,-3.282654,15.18309,0.0911641],[70.5,-3.265004,15.19313,0.092028],[71.5,-3.245938,15.20441,0.092908],[72.5,-3.225607,15.2169,0.093803],[73.5,-3.204146,15.23058,0.0947119],[74.5,-3.18169,15.24543,0.0956336],[75.5,-3.158363,15.26142,0.096567],[76.5,-3.134283,15.27854,0.097511],[77.5,-3.109558,15.29676,0.0984647],[78.5,-3.084291,15.31607,0.099427],[79.5,-3.058577,15.33644,0.1003968],[80.5,-3.032505,15.35785,0.1013732],[81.5,-3.006158,15.38029,0.1023552],[82.5,-2.979609,15.40374,0.1033418],[83.5,-2.952931,15.42817,0.1043321],[84.5,-2.926187,15.45357,0.1053253],[85.5,-2.899435,15.47991,0.1063203],[86.5,-2.872731,15.50718,0.1073164],[87.5,-2.846124,15.53537,0.1083127],[88.5,-2.819658,15.56444,0.1093084],[89.5,-2.793374,15.59439,0.1103026],[90.5,-2.76731,15.6252,0.1112945],[91.5,-2.741499,15.65684,0.1122835],[92.5,-2.715971,15.6893,0.1132688],[93.5,-2.690753,15.72257,0.1142496],[94.5,-2.66587,15.75662,0.1152253],[95.5,-2.641343,15.79143,0.1161952],[96.5,-2.617192,15.827,0.1171587],[97.5,-2.593431,15.86329,0.1181151],[98.5,-2.570076,15.9003,0.1190638],[99.5,-2.547141,15.93802,0.1200043],[100.5,-2.524635,15.97641,0.120936],[101.5,-2.50257,16.01546,0.1218584],[102.5,-2.480952,16.05517,0.1227709],[103.5,-2.459786,16.09551,0.1236731],[104.5,-2.43908,16.13646,0.1245645],[105.5,-2.418838,16.17801,0.1254446],[106.5,-2.399064,16.22014,0.1263131],[107.5,-2.379757,16.26284,0.1271695],[108.5,-2.360921,16.30609,0.1280135],[109.5,-2.342558,16.34988,0.1288446],[110.5,-2.324663,16.39418,0.1296626],[111.5,-2.307241,16.43899,0.1304671],[112.5,-2.290288,16.48428,0.1312579],[113.5,-2.273804,16.53005,0.1320345],[114.5,-2.257782,16.57627,0.1327968],[115.5,-2.242228,16.62293,0.1335445],[116.5,-2.227133,16.67002,0.1342774],[117.5,-2.212496,16.71751,0.1349953],[118.5,-2.198313,16.7654,0.135698],[119.5,-2.184581,16.81368,0.1363853],[120.5,-2.171296,16.86231,0.137057],[121.5,-2.158454,16.9113,0.137713],[122.5,-2.146052,16.96062,0.1383533],[123.5,-2.134084,17.01026,0.1389775],[124.5,-2.122548,17.06021,0.1395858],[125.5,-2.111437,17.11045,0.1401779],[126.5,-2.100749,17.16097,0.1407539],[127.5,-2.090479,17.21174,0.1413137],[128.5,-2.080621,17.26277,0.1418572],[129.5,-2.071173,17.31403,0.1423844],[130.5,-2.062129,17.36551,0.1428953],[131.5,-2.053484,17.41719,0.14339],[132.5,-2.045235,17.46907,0.1438683],[133.5,-2.037377,17.52112,0.1443305],[134.5,-2.029907,17.57333,0.1447764],[135.5,-2.022818,17.6257,0.1452061],[136.5,-2.016107,17.6782,0.1456198],[137.5,-2.00977,17.73082,0.1460175],[138.5,-2.003802,17.78356,0.1463992],[139.5,-1.9982,17.83638,0.1467652],[140.5,-1.992958,17.88929,0.1471154],[141.5,-1.988074,17.94227,0.14745],[142.5,-1.983542,17.99531,0.1477691],[143.5,-1.979359,18.04838,0.1480729],[144.5,-1.975521,18.10149,0.1483615],[145.5,-1.972024,18.15461,0.1486351],[146.5,-1.968864,18.20774,0.1488938],[147.5,-1.966038,18.26085,0.1491378],[148.5,-1.963541,18.31395,0.1493673],[149.5,-1.961369,18.36701,0.1495824],[150.5,-1.95952,18.42002,0.1497835],[151.5,-1.957989,18.47298,0.1499706],[152.5,-1.956772,18.52586,0.150144],[153.5,-1.955867,18.57866,0.1503039],[154.5,-1.955268,18.63136,0.1504506],[155.5,-1.954973,18.68396,0.1505843],[156.5,-1.954978,18.73643,0.1507051],[157.5,-1.955279,18.78878,0.1508135],[158.5,-1.955873,18.84098,0.1509095],[159.5,-1.956756,18.89302,0.1509936],[160.5,-1.957923,18.9449,0.1510659],[161.5,-1.959373,18.9966,0.1511267],[162.5,-1.9611,19.04811,0.1511764],[163.5,-1.9631,19.09942,0.1512151],[164.5,-1.965371,19.15052,0.1512432],[165.5,-1.967908,19.20139,0.151261],[166.5,-1.970707,19.25204,0.1512689],[167.5,-1.973763,19.30243,0.151267],[168.5,-1.977074,19.35257,0.1512557],[169.5,-1.980633,19.40245,0.1512354],[170.5,-1.984438,19.45204,0.1512063],[171.5,-1.988483,19.50136,0.1511689],[172.5,-1.992764,19.55037,0.1511234],[173.5,-1.997276,19.59907,0.1510702],[174.5,-2.002014,19.64746,0.1510096],[175.5,-2.006973,19.69552,0.150942],[176.5,-2.012148,19.74325,0.1508678],[177.5,-2.017533,19.79062,0.1507872],[178.5,-2.023123,19.83764,0.1507008],[179.5,-2.028912,19.88429,0.1506088],[180.5,-2.034893,19.93057,0.1505116],[181.5,-2.041061,19.97646,0.1504097],[182.5,-2.047409,20.02195,0.1503034],[183.5,-2.053929,20.06704,0.1501932],[184.5,-2.060617,20.11172,0.1500793],[185.5,-2.067462,20.15598,0.1499623],[186.5,-2.07446,20.19981,0.1498425],[187.5,-2.0816,20.2432,0.1497204],[188.5,-2.088876,20.28614,0.1495964],[189.5,-2.096278,20.32862,0.149471],[190.5,-2.103799,20.37064,0.1493444],[191.5,-2.111428,20.41219,0.1492173],[192.5,-2.119157,20.45326,0.1490901],[193.5,-2.126975,20.49383,0.1489631],[194.5,-2.134873,20.53392,0.1488369],[195.5,-2.14284,20.57349,0.148712],[196.5,-2.150865,20.61256,0.1485888],[197.5,-2.158937,20.65111,0.1484677],[198.5,-2.167045,20.68912,0.1483493],[199.5,-2.175177,20.72661,0.1482341],[200.5,-2.183317,20.76355,0.1481226],[201.5,-2.191458,20.79994,0.1480152],[202.5,-2.199584,20.83578,0.1479126],[203.5,-2.207682,20.87105,0.1478151],[204.5,-2.215738,20.90576,0.1477233],[205.5,-2.22374,20.93988,0.1476378],[206.5,-2.231668,20.97343,0.1475591],[207.5,-2.239512,21.00638,0.1474877],[208.5,-2.247257,21.03874,0.1474242],[209.5,-2.254885,21.07049,0.1473692],[210.5,-2.262382,21.10163,0.1473231],[211.5,-2.269732,21.13216,0.1472867],[212.5,-2.276917,21.16206,0.1472604],[213.5,-2.283925,21.19134,0.1472448],[214.5,-2.290731,21.21997,0.1472407],[215.5,-2.297324,21.24797,0.1472485],[216.5,-2.303688,21.27532,0.1472688],[217.5,-2.3098,21.30202,0.1473023],[218.5,-2.315652,21.32805,0.1473495],[219.5,-2.321217,21.35343,0.1474112],[220.5,-2.326482,21.37812,0.147488],[221.5,-2.331428,21.40215,0.1475805],[222.5,-2.336038,21.42548,0.1476893],[223.5,-2.340295,21.44813,0.1478152],[224.5,-2.344182,21.47008,0.1479587],[225.5,-2.34768,21.49134,0.1481206],[226.5,-2.350773,21.51188,0.1483016],[227.5,-2.353445,21.53171,0.1485024],[228.5,-2.355678,21.55082,0.1487235],[229.5,-2.357456,21.56921,0.1489659],[230.5,-2.358764,21.58686,0.1492301],[231.5,-2.359585,21.60378,0.149517],[232.5,-2.359906,21.61996,0.1498272],[233.5,-2.35971,21.63539,0.1501615],[234.5,-2.35898,21.65006,0.1505207],[235.5,-2.357715,21.66397,0.1509054],[236.5,-2.355892,21.67712,0.1513165],[237.5,-2.353501,21.68949,0.1517548],[238.5,-2.350529,21.70108,0.1522211],[239.5,-2.346962,21.71189,0.1527162],[240.0,-2.344958,21.717,0.1529747],[240.5,-2.342797,21.72191,0.1532409]];
+
+const KG_PER_LB = 0.45359237;
+const CM_PER_IN = 2.54;
+const INZ_BMI_MIN = 18.5;
+const INZ_BMI_MAX = 30;
+const Z_P5  = -1.6448536;
+const Z_P85 =  1.0364334;
+const Z_P95 =  1.6448536;
+
+const ADULT_CATS = [
+  { key: 'under',  label: 'Underweight',    bmiMin: 0,    bmiMax: 18.5 },
+  { key: 'normal', label: 'Normal weight',  bmiMin: 18.5, bmiMax: 25   },
+  { key: 'over',   label: 'Overweight',     bmiMin: 25,   bmiMax: 30   },
+  { key: 'ob1',    label: 'Obese class I',  bmiMin: 30,   bmiMax: 35   },
+  { key: 'ob2',    label: 'Obese class II', bmiMin: 35,   bmiMax: 40   },
+  { key: 'ob3',    label: 'Obese class III',bmiMin: 40,   bmiMax: Infinity },
+];
+
+const STORAGE_KEY = 'bmi-bands.v1';
+
+const state = {
+  units: 'metric',
+  selectedId: null,
+  members: [],
+};
+
+const el = (id) => document.getElementById(id);
+
+// -- storage --
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data && typeof data === 'object') {
+      state.units = data.units === 'imperial' ? 'imperial' : 'metric';
+      state.members = Array.isArray(data.members) ? data.members : [];
+      state.selectedId = data.selectedId || null;
+      if (state.members.length && !state.members.find(m => m.id === state.selectedId)) {
+        state.selectedId = state.members[0].id;
+      }
+    }
+  } catch {}
+}
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      units: state.units,
+      selectedId: state.selectedId,
+      members: state.members,
+    }));
+  } catch {}
+}
+
+// -- numeric helpers --
+
+function kgToLb(kg) { return kg / KG_PER_LB; }
+function lbToKg(lb) { return lb * KG_PER_LB; }
+function cmToIn(cm) { return cm / CM_PER_IN; }
+function inToCm(inch) { return inch * CM_PER_IN; }
+function mToFtIn(m) {
+  const totalIn = m * 100 / CM_PER_IN;
+  const ft = Math.floor(totalIn / 12);
+  const inch = totalIn - ft * 12;
+  return { ft, inch };
+}
+function parseDec(v) {
+  if (v === null || v === undefined) return null;
+  const s = String(v).trim().replace(',', '.');
+  if (!s) return null;
+  const n = Number(s);
+  return isFinite(n) && n > 0 ? n : null;
+}
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+function newId() {
+  if (globalThis.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+}
+
+function ageFromDob(dobStr) {
+  if (!dobStr) return null;
+  const dob = new Date(dobStr + 'T00:00:00');
+  if (isNaN(dob)) return null;
+  const now = new Date();
+  const ms = now - dob;
+  if (ms < 0) return null;
+  return ms / (365.2425 * 24 * 3600 * 1000);
+}
+function formatAge(years) {
+  if (years === null || !isFinite(years)) return '—';
+  if (years < 2) {
+    const months = Math.round(years * 12);
+    return `${months} months`;
+  }
+  if (years < 18) {
+    return `${years.toFixed(1).replace(/\.0$/, '')} yr`;
+  }
+  return `${Math.floor(years)} yr`;
+}
+
+function erf(x) {
+  const a1=0.254829592, a2=-0.284496736, a3=1.421413741, a4=-1.453152027, a5=1.061405429, p=0.3275911;
+  const sign = x < 0 ? -1 : 1;
+  x = Math.abs(x);
+  const t = 1 / (1 + p*x);
+  const y = 1 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*Math.exp(-x*x);
+  return sign * y;
+}
+function normCdf(z) { return 0.5 * (1 + erf(z / Math.SQRT2)); }
+
+function lmsFor(sex, ageMos) {
+  const data = sex === 'male' ? CDC_MALE : CDC_FEMALE;
+  if (ageMos <= data[0][0]) return { L: data[0][1], M: data[0][2], S: data[0][3] };
+  const last = data[data.length-1];
+  if (ageMos >= last[0]) return { L: last[1], M: last[2], S: last[3] };
+  let lo = 0, hi = data.length - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (data[mid][0] <= ageMos) lo = mid; else hi = mid;
+  }
+  const a = data[lo], b = data[hi];
+  const t = (ageMos - a[0]) / (b[0] - a[0]);
+  return { L: a[1] + t*(b[1]-a[1]), M: a[2] + t*(b[2]-a[2]), S: a[3] + t*(b[3]-a[3]) };
+}
+function bmiToZ(bmi, L, M, S) {
+  if (Math.abs(L) < 1e-9) return Math.log(bmi/M) / S;
+  return (Math.pow(bmi/M, L) - 1) / (L * S);
+}
+function bmiFromZ(z, L, M, S) {
+  if (Math.abs(L) < 1e-9) return M * Math.exp(S * z);
+  return M * Math.pow(1 + L*S*z, 1/L);
+}
+
+function adultCategoryFor(bmi) {
+  for (const c of ADULT_CATS) if (bmi < c.bmiMax) return c;
+  return ADULT_CATS[ADULT_CATS.length - 1];
+}
+function childCategoryFor(bmi, L, M, S) {
+  const z = bmiToZ(bmi, L, M, S);
+  const bmi95 = bmiFromZ(Z_P95, L, M, S);
+  if (z < Z_P5)  return { key: 'under',  label: 'Underweight' };
+  if (z < Z_P85) return { key: 'normal', label: 'Healthy weight' };
+  if (z < Z_P95) return { key: 'over',   label: 'Overweight' };
+  if (bmi < 1.2 * bmi95) return { key: 'ob1', label: 'Obesity' };
+  return { key: 'ob2', label: 'Severe obesity' };
+}
+
+function modeFor(ageYears) {
+  if (ageYears === null || !isFinite(ageYears) || ageYears < 0) return 'invalid';
+  if (ageYears < 2) return 'infant';
+  if (ageYears > 18) return 'adult';
+  return 'child';
+}
+
+function fmtWeight(kg) {
+  if (!isFinite(kg) || kg === null) return '—';
+  if (state.units === 'imperial') return `${kgToLb(kg).toFixed(1)} lb`;
+  return `${kg.toFixed(1)} kg`;
+}
+function fmtWeightShort(kg) {
+  if (!isFinite(kg) || kg === null) return '—';
+  if (state.units === 'imperial') return `${Math.round(kgToLb(kg))}`;
+  return `${kg.toFixed(1)}`;
+}
+function fmtWeightDelta(kg) {
+  if (state.units === 'imperial') return `${kgToLb(kg).toFixed(1)} lb`;
+  return `${kg.toFixed(1)} kg`;
+}
+
+function currentMember() {
+  return state.members.find(m => m.id === state.selectedId) || null;
+}
+
+function bmiOf(m) {
+  if (!m || !m.heightCm || !m.weightKg) return null;
+  const h = m.heightCm / 100;
+  return m.weightKg / (h * h);
+}
+
+function pctSuffix(p) {
+  const n = Math.round(p);
+  const mod100 = n % 100, mod10 = n % 10;
+  if (mod100 >= 11 && mod100 <= 13) return n + 'th';
+  if (mod10 === 1) return n + 'st';
+  if (mod10 === 2) return n + 'nd';
+  if (mod10 === 3) return n + 'rd';
+  return n + 'th';
+}
+function pctLabel(p) {
+  if (p < 0.1) return '< 0.1th';
+  if (p > 99.9) return '> 99.9th';
+  return pctSuffix(p);
+}
+
+// -- member actions --
+
+function addMember() {
+  const m = {
+    id: newId(),
+    name: 'Member ' + (state.members.length + 1),
+    dob: null,
+    sex: 'female',
+    heightCm: null,
+    weightKg: null,
+    readings: [],
+  };
+  state.members.push(m);
+  state.selectedId = m.id;
+  saveState();
+  renderAll();
+  setTimeout(() => el('name').focus(), 0);
+}
+function removeMember(id) {
+  const idx = state.members.findIndex(m => m.id === id);
+  if (idx < 0) return;
+  const name = state.members[idx].name;
+  if (!confirmFallback(`Remove ${name}? This clears their stored data in this browser.`)) return;
+  state.members.splice(idx, 1);
+  if (state.selectedId === id) {
+    state.selectedId = state.members[0]?.id || null;
+  }
+  saveState();
+  renderAll();
+}
+function confirmFallback(msg) {
+  try { return window.confirm(msg); } catch { return true; }
+}
+
+function logWeight() {
+  const m = currentMember();
+  if (!m || !m.weightKg) return;
+  m.readings = m.readings || [];
+  const d = todayISO();
+  const existing = m.readings.find(r => r.date === d);
+  if (existing) existing.weightKg = m.weightKg;
+  else m.readings.push({ date: d, weightKg: m.weightKg });
+  m.readings.sort((a, b) => a.date.localeCompare(b.date));
+  saveState();
+  renderHistory();
+}
+function deleteReading(date) {
+  const m = currentMember();
+  if (!m) return;
+  m.readings = (m.readings || []).filter(r => r.date !== date);
+  saveState();
+  renderHistory();
+}
+
+// -- rendering --
+
+function renderAll() {
+  renderUnitToggle();
+  renderRoster();
+  renderDetail();
+}
+
+function renderUnitToggle() {
+  document.querySelectorAll('.unit-toggle button').forEach(b => {
+    b.setAttribute('aria-selected', String(b.dataset.units === state.units));
+  });
+}
+
+function renderRoster() {
+  const roster = el('roster');
+  const empty = el('empty-state');
+  const detail = el('detail');
+
+  if (state.members.length === 0) {
+    roster.innerHTML = '';
+    empty.hidden = false;
+    detail.hidden = true;
+    return;
+  }
+  empty.hidden = true;
+  detail.hidden = false;
+
+  roster.innerHTML = state.members.map(m => {
+    const bmi = bmiOf(m);
+    const ageYears = ageFromDob(m.dob);
+    const mode = modeFor(ageYears);
+    let catKey = 'info', chipText = '—', bmiText = '—';
+    if (bmi !== null) {
+      bmiText = bmi.toFixed(1);
+      if (mode === 'adult') {
+        catKey = adultCategoryFor(bmi).key;
+        chipText = bmi >= INZ_BMI_MIN && bmi <= INZ_BMI_MAX ? 'A grade' : 'B grade';
+      } else if (mode === 'child') {
+        const ageMos = ageYears * 12;
+        const { L, M, S } = lmsFor(m.sex || 'female', ageMos);
+        const pct = normCdf(bmiToZ(bmi, L, M, S)) * 100;
+        catKey = childCategoryFor(bmi, L, M, S).key;
+        chipText = pctLabel(pct);
+      } else if (mode === 'infant') {
+        chipText = 'infant';
+        bmiText = '—';
+      }
+    } else {
+      chipText = mode === 'infant' ? 'infant' : 'enter data';
+    }
+    const initial = (m.name || '?').trim().charAt(0).toUpperCase() || '?';
+    const sub = ageYears !== null ? formatAge(ageYears) : 'no DOB';
+    const active = m.id === state.selectedId;
+    return `
+      <button type="button" class="m-card" data-id="${m.id}" data-active="${active}" data-cat="${catKey}">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0">
+          <span class="initial">${initial}</span>
+          <div style="display:flex;flex-direction:column;min-width:0">
+            <span class="m-name">${escapeHtml(m.name || 'Unnamed')}</span>
+            <span class="m-sub">${sub}</span>
+          </div>
+        </div>
+        <div class="m-bmi">${bmiText}</div>
+        <span class="m-chip">${chipText}</span>
+      </button>
+    `;
+  }).join('') + `
+    <button type="button" class="m-add" id="add-another">+ Add another</button>
+  `;
+
+  roster.querySelectorAll('.m-card').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.selectedId = btn.dataset.id;
+      saveState();
+      renderDetail();
+      renderRoster();
+    });
+  });
+  const addAnother = document.getElementById('add-another');
+  if (addAnother) addAnother.addEventListener('click', addMember);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function renderDetail() {
+  const m = currentMember();
+  if (!m) return;
+
+  // Fill inputs
+  el('name').value = m.name || '';
+  el('dob').value = m.dob || '';
+  el('sex').value = m.sex || 'female';
+  syncUnitFields();
+
+  const ageYears = ageFromDob(m.dob);
+  el('age-display').textContent = formatAge(ageYears);
+
+  render();
+}
+
+function syncUnitFields() {
+  const m = currentMember();
+  if (!m) return;
+  const metric = state.units === 'metric';
+  el('field-h-cm').hidden = !metric;
+  el('field-w-kg').hidden = !metric;
+  el('field-h-ft').hidden = metric;
+  el('field-w-lb').hidden = metric;
+
+  if (metric) {
+    el('height-cm').value = m.heightCm != null ? m.heightCm.toFixed(1).replace(/\.0$/, '') : '';
+    el('weight-kg').value = m.weightKg != null ? m.weightKg.toFixed(1).replace(/\.0$/, '') : '';
+  } else {
+    if (m.heightCm != null) {
+      const { ft, inch } = mToFtIn(m.heightCm / 100);
+      el('height-ft').value = ft;
+      el('height-in').value = inch.toFixed(1).replace(/\.0$/, '');
+    } else {
+      el('height-ft').value = '';
+      el('height-in').value = '';
+    }
+    el('weight-lb').value = m.weightKg != null ? kgToLb(m.weightKg).toFixed(1).replace(/\.0$/, '') : '';
+  }
+
+  renderUnitToggle();
+}
+
+function readMemberInputs() {
+  const m = currentMember();
+  if (!m) return;
+  m.name = el('name').value;
+  m.dob = el('dob').value || null;
+  m.sex = el('sex').value;
+  if (state.units === 'metric') {
+    m.heightCm = parseDec(el('height-cm').value);
+    m.weightKg = parseDec(el('weight-kg').value);
+  } else {
+    const ft = parseDec(el('height-ft').value) || 0;
+    const inch = parseDec(el('height-in').value) || 0;
+    const totalIn = ft * 12 + inch;
+    m.heightCm = totalIn > 0 ? inToCm(totalIn) : null;
+    const lb = parseDec(el('weight-lb').value);
+    m.weightKg = lb ? lbToKg(lb) : null;
+  }
+}
+
+function render() {
+  const m = currentMember();
+  if (!m) return;
+
+  const ageYears = ageFromDob(m.dob);
+  const mode = modeFor(ageYears);
+  const h = m.heightCm ? m.heightCm / 100 : null;
+  const w = m.weightKg;
+  const bmi = (h && w) ? w / (h * h) : null;
+
+  el('bmi-value').textContent = bmi !== null ? bmi.toFixed(1) : '—';
+  el('age-display').textContent = formatAge(ageYears);
+  el('height-hint').textContent = h ? (state.units === 'metric'
+      ? `${(h*100).toFixed(0)} cm · ${h.toFixed(2)} m`
+      : `${mToFtIn(h).ft}′${mToFtIn(h).inch.toFixed(1)}″ · ${h.toFixed(2)} m`) : '—';
+
+  el('pct-line').hidden = true;
+  el('age-warn').hidden = true;
+  el('age-stop').hidden = true;
+  el('mode-note').hidden = true;
+  el('main-label').textContent = 'BMI';
+
+  if (!h || !w) {
+    showInzChip('info', 'Waiting for data', '');
+    setChip('cat-chip', 'info', 'Fill in height and weight');
+    el('result-detail').textContent = 'Enter date of birth, sex, height and current weight.';
+    renderBand('empty');
+    renderTable('empty');
+    renderHistory();
+    return;
+  }
+
+  if (mode === 'invalid') {
+    showInzChip('info', 'Enter date of birth', '');
+    setChip('cat-chip', 'info', '—');
+    el('result-detail').textContent = 'Pick a date of birth to get the right band (adult BMI or child percentile).';
+    renderBand('empty');
+    renderTable('empty');
+    renderHistory();
+    return;
+  }
+
+  if (mode === 'infant') {
+    renderInfant();
+    renderHistory();
+    return;
+  }
+
+  if (mode === 'child') {
+    renderChild(bmi, h, w, ageYears);
+  } else {
+    renderAdult(bmi, h, w);
+  }
+
+  renderHistory();
+}
+
+function setChip(id, cat, text) {
+  const c = el(id);
+  c.setAttribute('data-cat', cat);
+  c.textContent = text;
+}
+function showInzChip(grade, text, tag) {
+  const c = el('inz-chip');
+  c.setAttribute('data-grade', grade);
+  c.innerHTML = tag ? `${text} <span class="tag">${tag}</span>` : text;
+}
+
+function renderAdult(bmi, h, w) {
+  const cat = adultCategoryFor(bmi);
+  setChip('cat-chip', cat.key, cat.label);
+
+  const inzOk = bmi >= INZ_BMI_MIN && bmi <= INZ_BMI_MAX;
+  if (inzOk) showInzChip('A', 'INZ panel: BMI in A-grade range', `${INZ_BMI_MIN}–${INZ_BMI_MAX}`);
+  else if (bmi > INZ_BMI_MAX) showInzChip('B', 'INZ panel: BMI above A-grade range', `> ${INZ_BMI_MAX}`);
+  else showInzChip('B', 'INZ panel: BMI below A-grade range', `< ${INZ_BMI_MIN}`);
+
+  const wInzLow = INZ_BMI_MIN * h * h;
+  const wInzHigh = INZ_BMI_MAX * h * h;
+  const wNormalHigh = 25 * h * h;
+
+  const detail = el('result-detail');
+  if (inzOk && cat.key === 'normal') {
+    const toUpper = wInzHigh - w;
+    detail.innerHTML = `Inside the panel's A-grade BMI band (<span class="mono">${fmtWeight(wInzLow)}</span>–<span class="mono">${fmtWeight(wInzHigh)}</span>) and inside the WHO normal range. The band tops out <span class="mono">${fmtWeightDelta(toUpper)}</span> above current weight.`;
+  } else if (inzOk && cat.key === 'over') {
+    const toTop = wInzHigh - w;
+    detail.innerHTML = `Inside the panel's A-grade BMI band (BMI ≤ ${INZ_BMI_MAX}) with <span class="mono">${fmtWeightDelta(toTop)}</span> of headroom. WHO calls this overweight; the panel accepts up to BMI ${INZ_BMI_MAX}.`;
+  } else if (bmi > INZ_BMI_MAX) {
+    const toInz = w - wInzHigh;
+    detail.innerHTML = `<span class="mono">${fmtWeightDelta(toInz)}</span> above the panel's BMI 30 threshold. To reach BMI 30 at this height, weight needs to drop to <span class="mono">${fmtWeight(wInzHigh)}</span>. The WHO normal upper bound (BMI 25) is <span class="mono">${fmtWeight(wNormalHigh)}</span>.`;
+  } else {
+    const toInz = wInzLow - w;
+    detail.innerHTML = `<span class="mono">${fmtWeightDelta(toInz)}</span> below BMI ${INZ_BMI_MIN}. BMI ${INZ_BMI_MIN} at this height is <span class="mono">${fmtWeight(wInzLow)}</span>. The panel treats the "normal range" as part of A-grade, so below ${INZ_BMI_MIN} also sits outside.`;
+  }
+
+  el('mode-note').hidden = false;
+  el('mode-note').textContent = 'Adult rules: BMI is calculated for applicants over 18. The panel uses BMI alongside blood pressure, urinalysis, cardiovascular, respiratory and other checks.';
+
+  el('band-title').textContent = 'Weight band at this height';
+  renderBand('adult', { h });
+  renderTable('adult', { h, bmi, catKey: cat.key });
+}
+
+function renderChild(bmi, h, w, ageYears) {
+  const sex = currentMember().sex || 'female';
+  const ageMos = ageYears * 12;
+  const { L, M, S } = lmsFor(sex, ageMos);
+  const z = bmiToZ(bmi, L, M, S);
+  const pct = normCdf(z) * 100;
+  const cat = childCategoryFor(bmi, L, M, S);
+
+  setChip('cat-chip', cat.key, cat.label);
+  showInzChip('info', 'INZ records this percentile', `CDC ${sex === 'male' ? 'boys' : 'girls'}`);
+
+  const pctEl = el('pct-line');
+  pctEl.hidden = false;
+  pctEl.innerHTML = `<b>${pctLabel(pct)}</b> percentile for age · sex`;
+
+  const bmi5 = bmiFromZ(Z_P5, L, M, S);
+  const bmi85 = bmiFromZ(Z_P85, L, M, S);
+  const bmi95 = bmiFromZ(Z_P95, L, M, S);
+  const w5 = bmi5 * h * h, w85 = bmi85 * h * h, w95 = bmi95 * h * h;
+
+  const sexLabel = sex === 'male' ? 'boys' : 'girls';
+  const ageLabel = `${ageYears.toFixed(1).replace(/\.0$/, '')}-year-old ${sexLabel}`;
+
+  const detail = el('result-detail');
+  if (cat.key === 'normal') {
+    detail.innerHTML = `For ${ageLabel} at this height, the healthy range sits between <span class="mono">${fmtWeight(w5)}</span> (5th) and <span class="mono">${fmtWeight(w85)}</span> (85th). This reads at the <span class="mono">${pctLabel(pct)}</span> percentile.`;
+  } else if (cat.key === 'under') {
+    detail.innerHTML = `For ${ageLabel} at this height, the 5th percentile is <span class="mono">${fmtWeight(w5)}</span>, so this is <span class="mono">${fmtWeightDelta(w5 - w)}</span> below it. Growth below the 5th warrants a paediatric view.`;
+  } else if (cat.key === 'over') {
+    detail.innerHTML = `For ${ageLabel} at this height, the 85th percentile is <span class="mono">${fmtWeight(w85)}</span> and the 95th is <span class="mono">${fmtWeight(w95)}</span>. This sits <span class="mono">${fmtWeightDelta(w - w85)}</span> above the healthy band and <span class="mono">${fmtWeightDelta(w95 - w)}</span> below obesity.`;
+  } else if (cat.key === 'ob1') {
+    detail.innerHTML = `For ${ageLabel} at this height, the 95th percentile is <span class="mono">${fmtWeight(w95)}</span>. This is <span class="mono">${fmtWeightDelta(w - w95)}</span> above. The healthy band tops out at <span class="mono">${fmtWeight(w85)}</span>.`;
+  } else {
+    const w120 = 1.2 * w95;
+    detail.innerHTML = `Above <span class="mono">${fmtWeight(w120)}</span> — 120% of the 95th-percentile BMI for ${ageLabel}. This is the severe-obesity flag; discuss with a paediatrician.`;
+  }
+
+  el('mode-note').hidden = false;
+  el('mode-note').textContent = 'Child rules: INZ 1216 cites CDC growth charts. The panel physician records the nearest percentile against height-and-weight charts for the appropriate population.';
+
+  el('band-title').textContent = `Weight band for a ${ageLabel}`;
+  renderBand('child', { h, L, M, S, bmi });
+  renderTable('child', { h, L, M, S, bmi, catKey: cat.key });
+}
+
+function renderInfant() {
+  el('main-label').textContent = 'Not applicable';
+  el('bmi-value').textContent = '—';
+  showInzChip('info', 'Infant: head circumference & weight', 'under 2y');
+  setChip('cat-chip', 'info', 'Use growth charts');
+  el('result-detail').innerHTML = 'INZ 1216 does not use BMI below age 2. Panel physicians record weight to the nearest 0.1 kg, length, and head circumference, and compare each to the appropriate growth chart. Head circumference below the 3rd centile triggers referral.';
+  el('age-stop').hidden = false;
+  el('age-stop').textContent = 'Under age 2: bring recent weight and head-circumference records to the IME.';
+  renderBand('empty');
+  renderTable('empty');
+}
+
+function renderBand(kind, ctx) {
+  const bar = el('band-bar');
+  const ticks = el('band-ticks');
+  const legend = el('band-legend');
+
+  if (kind === 'empty') {
+    bar.innerHTML = ''; ticks.innerHTML = ''; legend.innerHTML = '';
+    return;
+  }
+
+  if (kind === 'adult') {
+    const h = ctx.h;
+    const BAND_MIN = 15, BAND_MAX = 45;
+    const stops = [15, 18.5, 25, 30, 35, 40, 45];
+    const segs = [
+      { key: 'under',  from: 15,   to: 18.5 },
+      { key: 'normal', from: 18.5, to: 25 },
+      { key: 'over',   from: 25,   to: 30 },
+      { key: 'ob1',    from: 30,   to: 35 },
+      { key: 'ob2',    from: 35,   to: 40 },
+      { key: 'ob3',    from: 40,   to: 45 },
+    ];
+    const toPct = (bmi) => ((bmi - BAND_MIN) / (BAND_MAX - BAND_MIN)) * 100;
+    const safeLeft = toPct(INZ_BMI_MIN);
+    const safeRight = toPct(INZ_BMI_MAX);
+    const thresholdLeft = toPct(INZ_BMI_MAX);
+
+    const m = currentMember();
+    bar.innerHTML =
+      `<div class="inz-safe" style="left:${safeLeft}%; width:${safeRight - safeLeft}%"></div>` +
+      segs.map(s => {
+        const basis = ((s.to - s.from) / (BAND_MAX - BAND_MIN)) * 100;
+        return `<div class="seg" data-cat="${s.key}" style="flex-basis:${basis}%"></div>`;
+      }).join('') +
+      `<div class="inz-threshold" style="left:${thresholdLeft}%"><span class="inz-threshold__label">INZ · BMI 30</span></div>` +
+      markerHtml(m.weightKg, (m.weightKg / (h*h) - BAND_MIN) / (BAND_MAX - BAND_MIN));
+
+    const narrow = window.innerWidth < 520;
+    const shown = narrow ? [18.5, 25, 30, 35, 40] : stops;
+    ticks.innerHTML = shown.map(bmi => {
+      const pct = toPct(bmi);
+      const wkg = bmi * h * h;
+      return `<div class="tick" style="left:${pct}%">
+        <span class="wt">${fmtWeightShort(wkg)}</span>
+        <span class="sub">BMI ${bmi}</span>
+      </div>`;
+    }).join('');
+
+    legend.innerHTML = `
+      <div><span class="sw safe-swatch"></span>INZ A-grade (BMI 18.5–30)</div>
+      <div><span class="sw line-swatch"></span>Panel threshold (BMI 30)</div>
+      <div><span class="sw" data-cat="under"></span>WHO underweight</div>
+      <div><span class="sw" data-cat="normal"></span>WHO normal</div>
+      <div><span class="sw" data-cat="over"></span>WHO overweight</div>
+      <div><span class="sw" data-cat="ob1"></span>WHO obese I</div>
+      <div><span class="sw" data-cat="ob2"></span>Obese II</div>
+      <div><span class="sw" data-cat="ob3"></span>Obese III</div>
+    `;
+    return;
+  }
+
+  // child
+  const { h, L, M, S, bmi } = ctx;
+  const bmi5 = bmiFromZ(Z_P5, L, M, S);
+  const bmi85 = bmiFromZ(Z_P85, L, M, S);
+  const bmi95 = bmiFromZ(Z_P95, L, M, S);
+  const bmi120 = 1.2 * bmi95;
+  const bmiLo = bmiFromZ(-3, L, M, S);
+  const bmiHi = Math.max(bmiFromZ(3, L, M, S), bmi120 * 1.05);
+  const RANGE = bmiHi - bmiLo;
+  const toPct = (b) => ((b - bmiLo) / RANGE) * 100;
+
+  const segs = [
+    { key: 'under',  from: bmiLo,  to: bmi5 },
+    { key: 'normal', from: bmi5,   to: bmi85 },
+    { key: 'over',   from: bmi85,  to: bmi95 },
+    { key: 'ob1',    from: bmi95,  to: bmi120 },
+    { key: 'ob2',    from: bmi120, to: bmiHi },
+  ];
+  const safeLeft = toPct(bmi5);
+  const safeRight = toPct(bmi85);
+
+  const m = currentMember();
+  bar.innerHTML =
+    `<div class="inz-safe" style="left:${safeLeft}%; width:${safeRight - safeLeft}%"></div>` +
+    segs.map(s => `<div class="seg" data-cat="${s.key}" style="flex-basis:${((s.to - s.from) / RANGE) * 100}%"></div>`).join('') +
+    markerHtml(m.weightKg, (bmi - bmiLo) / RANGE);
+
+  const stops = [
+    { bmi: bmi5,   label: 'P5' },
+    { bmi: bmi85,  label: 'P85' },
+    { bmi: bmi95,  label: 'P95' },
+    { bmi: bmi120, label: '120%' },
+  ];
+  ticks.innerHTML = stops.map(s => `<div class="tick" style="left:${toPct(s.bmi)}%">
+    <span class="wt">${fmtWeightShort(s.bmi * h * h)}</span>
+    <span class="sub">${s.label}</span>
+  </div>`).join('');
+
+  legend.innerHTML = `
+    <div><span class="sw safe-swatch"></span>Healthy band (P5–P85)</div>
+    <div><span class="sw" data-cat="under"></span>Underweight (&lt;P5)</div>
+    <div><span class="sw" data-cat="normal"></span>Healthy</div>
+    <div><span class="sw" data-cat="over"></span>Overweight (P85–P95)</div>
+    <div><span class="sw" data-cat="ob1"></span>Obesity (≥P95)</div>
+    <div><span class="sw" data-cat="ob2"></span>Severe (≥120% P95)</div>
+  `;
+}
+
+function markerHtml(wKg, pos) {
+  const pct = Math.max(0, Math.min(100, pos * 100));
+  return `<div class="marker" style="left:${pct}%">
+    <span class="marker__label">${fmtWeight(wKg)}</span>
+  </div>`;
+}
+
+function renderTable(kind, ctx) {
+  const tbody = document.querySelector('#ranges tbody');
+  const thMid = el('th-mid');
+  if (kind === 'empty') { tbody.innerHTML = ''; return; }
+
+  if (kind === 'adult') {
+    thMid.textContent = 'BMI';
+    const { h, catKey } = ctx;
+    tbody.innerHTML = ADULT_CATS.map(c => {
+      const lo = c.bmiMin > 0 ? c.bmiMin * h * h : null;
+      const hi = isFinite(c.bmiMax) ? c.bmiMax * h * h : null;
+      let bmiCell, wtCell;
+      if (c.bmiMin === 0) { bmiCell = `< ${c.bmiMax}`; wtCell = `< ${fmtWeight(hi)}`; }
+      else if (!isFinite(c.bmiMax)) { bmiCell = `≥ ${c.bmiMin}`; wtCell = `≥ ${fmtWeight(lo)}`; }
+      else { bmiCell = `${c.bmiMin} – ${c.bmiMax}`; wtCell = `${fmtWeight(lo)} – ${fmtWeight(hi)}`; }
+      const bmiLo = c.bmiMin === 0 ? 0 : c.bmiMin;
+      const bmiHi = isFinite(c.bmiMax) ? c.bmiMax : Infinity;
+      const inA = bmiLo >= INZ_BMI_MIN && bmiHi <= INZ_BMI_MAX;
+      const inz = inA ? `<span class="inz-mark" data-grade="A">A</span>`
+                      : (bmiLo >= INZ_BMI_MAX ? `<span class="inz-mark" data-grade="B">B</span>` : '');
+      return `<tr data-cat="${c.key}" data-active="${c.key === catKey}">
+        <td><span class="cat-name"><span class="dot-cat"></span>${c.label}</span>${inz}</td>
+        <td class="sub-cell">${bmiCell}</td>
+        <td class="num">${wtCell}</td>
+      </tr>`;
+    }).join('');
+    return;
+  }
+
+  thMid.textContent = 'Percentile';
+  const { h, L, M, S, catKey } = ctx;
+  const bmi5 = bmiFromZ(Z_P5, L, M, S);
+  const bmi85 = bmiFromZ(Z_P85, L, M, S);
+  const bmi95 = bmiFromZ(Z_P95, L, M, S);
+  const bmi120 = 1.2 * bmi95;
+  const w5 = bmi5 * h * h, w85 = bmi85 * h * h, w95 = bmi95 * h * h, w120 = bmi120 * h * h;
+
+  const rows = [
+    { key: 'under',  label: 'Underweight',    mid: '< 5th',          wt: `< ${fmtWeight(w5)}` },
+    { key: 'normal', label: 'Healthy weight', mid: '5th – 85th',     wt: `${fmtWeight(w5)} – ${fmtWeight(w85)}` },
+    { key: 'over',   label: 'Overweight',     mid: '85th – 95th',    wt: `${fmtWeight(w85)} – ${fmtWeight(w95)}` },
+    { key: 'ob1',    label: 'Obesity',        mid: '≥ 95th',         wt: `${fmtWeight(w95)} – ${fmtWeight(w120)}` },
+    { key: 'ob2',    label: 'Severe obesity', mid: '≥ 120% of 95th', wt: `≥ ${fmtWeight(w120)}` },
+  ];
+  tbody.innerHTML = rows.map(r =>
+    `<tr data-cat="${r.key}" data-active="${r.key === catKey}">
+      <td><span class="cat-name"><span class="dot-cat"></span>${r.label}</span></td>
+      <td class="sub-cell">${r.mid}</td>
+      <td class="num">${r.wt}</td>
+    </tr>`
+  ).join('');
+}
+
+function renderHistory() {
+  const m = currentMember();
+  const list = el('history-list');
+  const chart = el('history-chart');
+  if (!m) { list.innerHTML = ''; chart.innerHTML = ''; return; }
+  const readings = (m.readings || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+  const h = m.heightCm ? m.heightCm / 100 : null;
+
+  if (readings.length === 0) {
+    list.innerHTML = `<div class="empty-row">No weight entries yet. Enter current weight and tap "Log today's weight".</div>`;
+    chart.innerHTML = '';
+    return;
+  }
+
+  // chart
+  const W = 600, H = 110, pad = 10;
+  const weights = readings.map(r => r.weightKg);
+  const wMin = Math.min(...weights) * 0.98;
+  const wMax = Math.max(...weights) * 1.02;
+  const t0 = new Date(readings[0].date).getTime();
+  const tN = new Date(readings[readings.length-1].date).getTime();
+  const spanT = Math.max(1, tN - t0);
+  const xFor = (d) => pad + (W - 2*pad) * ((new Date(d).getTime() - t0) / spanT);
+  const yFor = (w) => (H - pad) - (H - 2*pad) * ((w - wMin) / Math.max(0.001, wMax - wMin));
+
+  const points = readings.map(r => `${xFor(r.date).toFixed(1)},${yFor(r.weightKg).toFixed(1)}`);
+  const polyline = `<polyline fill="none" stroke="var(--accent)" stroke-width="2" points="${points.join(' ')}"/>`;
+  const area = `<polygon fill="var(--accent)" fill-opacity="0.12" points="${points.join(' ')} ${xFor(readings[readings.length-1].date).toFixed(1)},${H-pad} ${xFor(readings[0].date).toFixed(1)},${H-pad}"/>`;
+  const dots = readings.map(r => `<circle cx="${xFor(r.date).toFixed(1)}" cy="${yFor(r.weightKg).toFixed(1)}" r="3" fill="var(--accent)"/>`).join('');
+  const refs = h ? (() => {
+    const ageYears = ageFromDob(m.dob);
+    const mode = modeFor(ageYears);
+    const lines = [];
+    if (mode === 'adult') {
+      const addLine = (bmi, label) => {
+        const w = bmi * h * h;
+        if (w >= wMin && w <= wMax) {
+          lines.push(`<line x1="${pad}" x2="${W-pad}" y1="${yFor(w)}" y2="${yFor(w)}" stroke="var(--border-strong)" stroke-dasharray="3 3" stroke-width="1"/>`);
+          lines.push(`<text x="${W-pad-4}" y="${yFor(w)-4}" font-size="10" fill="var(--muted)" text-anchor="end" font-family="IBM Plex Mono,monospace">BMI ${bmi} · ${fmtWeightShort(w)}</text>`);
+        }
+      };
+      addLine(25, '25');
+      addLine(30, '30');
+    }
+    return lines.join('');
+  })() : '';
+
+  chart.innerHTML = refs + area + polyline + dots;
+
+  // list (descending)
+  const descending = readings.slice().reverse();
+  list.innerHTML = descending.map(r => {
+    const bmiR = h ? (r.weightKg / (h*h)).toFixed(1) : '—';
+    return `<div class="row">
+      <span class="d">${r.date}</span>
+      <span class="w">${fmtWeight(r.weightKg)}</span>
+      <span class="b">BMI ${bmiR}</span>
+      <button class="danger" data-date="${r.date}" aria-label="Delete reading">×</button>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('button[data-date]').forEach(btn => {
+    btn.addEventListener('click', () => deleteReading(btn.dataset.date));
+  });
+}
+
+function renderFooterNotes() {
+  el('inz-note').innerHTML = `Based on <b>Immigration New Zealand Panel Member Instructions (INZ 1216), May 2026</b>. Adults: panel ticks "no significant or abnormal findings" when BMI is in a normal range and ≤ 30. Children: panel records the nearest percentile against standardised growth charts, with CDC charts cited by name. Infants under 2: weight recorded to the nearest 0.1 kg; head circumference below the 3rd centile triggers referral. Source: <a href="https://www.immigration.govt.nz/assets/inz/documents/industry/inz1216.pdf" target="_blank" rel="noopener">immigration.govt.nz/assets/inz/documents/industry/inz1216.pdf</a>.`;
+  el('formula-note').textContent = 'BMI formula per INZ 1216: weight in kilograms divided by height in metres squared.';
+  el('source-note').innerHTML = 'This is a personal overview, not a medical opinion. The panel physician decides what goes on the IME. BMI is one line in the IME alongside blood pressure, urinalysis, cardiovascular, respiratory, visual acuity and medical history.';
+}
+
+// -- wiring --
+
+function wire() {
+  const inputs = ['name','dob','sex','height-cm','height-ft','height-in','weight-kg','weight-lb'];
+  inputs.forEach(id => {
+    const node = el(id);
+    const handler = () => {
+      readMemberInputs();
+      saveState();
+      render();
+      renderRoster();
+    };
+    node.addEventListener('input', handler);
+    node.addEventListener('change', handler);
+  });
+
+  document.querySelectorAll('.unit-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (state.units === btn.dataset.units) return;
+      readMemberInputs();
+      state.units = btn.dataset.units;
+      saveState();
+      syncUnitFields();
+      render();
+      renderRoster();
+    });
+  });
+
+  el('add-member').addEventListener('click', addMember);
+  el('add-first').addEventListener('click', addMember);
+  el('delete-member').addEventListener('click', () => {
+    const m = currentMember();
+    if (m) removeMember(m.id);
+  });
+  el('log-weight').addEventListener('click', () => {
+    readMemberInputs();
+    saveState();
+    logWeight();
+    renderRoster();
+  });
+
+  window.addEventListener('resize', () => render());
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY) {
+      loadState();
+      renderAll();
+    }
+  });
+}
+
+loadState();
+renderFooterNotes();
+wire();
+renderAll();
+</script>
+</body>
+</html>

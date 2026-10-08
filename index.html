@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-units="metric">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -93,6 +93,10 @@
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
 
+  /* Unit visibility driven by <html data-units> */
+  html[data-units="metric"] .only-imperial { display: none !important; }
+  html[data-units="imperial"] .only-metric { display: none !important; }
+
   html, body { margin: 0; padding: 0; }
   body {
     background: var(--bg);
@@ -148,8 +152,6 @@
   }
   .unit-toggle button[aria-selected="true"] { background: var(--fg); color: var(--bg); }
 
-  /* Section header */
-
   .sec-hdr { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
   .sec-hdr h2 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--muted); }
 
@@ -172,96 +174,6 @@
     padding: 10px 18px; border-radius: 10px; cursor: pointer;
   }
 
-  /* Family roster */
-
-  .roster {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    scrollbar-width: thin;
-  }
-  .roster::-webkit-scrollbar { height: 6px; }
-  .roster::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-  .m-card {
-    flex-shrink: 0;
-    width: 150px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    text-align: left;
-    font: inherit;
-    color: var(--fg);
-    position: relative;
-  }
-  .m-card:hover { border-color: var(--border-strong); }
-  .m-card[data-active="true"] {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 15%, transparent);
-  }
-  .m-card .initial {
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    background: color-mix(in oklab, var(--accent) 20%, transparent);
-    color: var(--accent);
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-  }
-  .m-card .m-name {
-    font-weight: 600;
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .m-card .m-sub { font-size: 11px; color: var(--muted); font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-feature-settings: "tnum"; }
-  .m-card .m-bmi {
-    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
-    font-size: 20px; font-weight: 500;
-    letter-spacing: -0.01em;
-    font-feature-settings: "tnum";
-  }
-  .m-card .m-chip {
-    font-size: 10px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.04em;
-    padding: 3px 7px; border-radius: 999px;
-    background: color-mix(in oklab, var(--cat-color, var(--muted)) 15%, transparent);
-    color: var(--cat-color, var(--muted));
-    width: fit-content;
-  }
-  .m-card[data-cat="under"]  { --cat-color: var(--cat-under); }
-  .m-card[data-cat="normal"] { --cat-color: var(--cat-normal); }
-  .m-card[data-cat="over"]   { --cat-color: var(--cat-over); }
-  .m-card[data-cat="ob1"]    { --cat-color: var(--cat-ob1); }
-  .m-card[data-cat="ob2"]    { --cat-color: var(--cat-ob2); }
-  .m-card[data-cat="ob3"]    { --cat-color: var(--cat-ob3); }
-  .m-card[data-cat="info"]   { --cat-color: var(--muted); }
-
-  .m-add {
-    flex-shrink: 0;
-    min-width: 150px;
-    background: transparent;
-    border: 1.5px dashed var(--border-strong);
-    border-radius: 12px;
-    color: var(--muted);
-    font: inherit; font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-  .m-add:hover { color: var(--fg); border-color: var(--fg); }
-
   /* Empty state */
 
   .empty {
@@ -275,13 +187,25 @@
   }
   .empty p { margin: 0; color: var(--muted); }
 
-  /* Detail inputs */
+  /* Member panel */
 
-  .detail__hdr {
+  .members { display: flex; flex-direction: column; gap: 36px; }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+  }
+  .panel__hdr {
     display: flex;
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+    justify-content: space-between;
   }
   .name-input {
     background: transparent;
@@ -302,16 +226,15 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 14px;
-    background: var(--surface);
+    background: var(--surface-2);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px;
+    border-radius: 12px;
+    padding: 16px;
   }
   .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .field label {
     font-size: 12px; font-weight: 500; color: var(--muted);
     letter-spacing: 0.02em; text-transform: uppercase;
-    display: flex; justify-content: space-between; align-items: baseline;
   }
   .field .row { display: flex; align-items: baseline; gap: 8px; position: relative; }
   .field input, .field select {
@@ -335,11 +258,12 @@
   .field.split-field .row { display: grid; grid-template-columns: 1fr auto 1fr auto; gap: 6px; align-items: center; }
   .field.split-field .unit { position: static; transform: none; font-size: 12px; color: var(--faint); }
   .field.age-field {
-    background: var(--surface-2);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 10px 12px;
     gap: 2px;
+    justify-content: center;
   }
   .field.age-field .age-val {
     font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
@@ -347,21 +271,19 @@
     font-feature-settings: "tnum";
   }
 
-  /* Result */
-
   .result {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 28px;
+    gap: 24px;
     align-items: center;
   }
-  @media (max-width: 540px) { .result { grid-template-columns: 1fr; gap: 16px; } }
+  @media (max-width: 540px) { .result { grid-template-columns: 1fr; gap: 14px; } }
 
   .result__bmi { display: flex; flex-direction: column; gap: 4px; line-height: 1; }
   .result__bmi .label { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
   .result__bmi .value {
     font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 72px; font-weight: 500; letter-spacing: -0.03em;
+    font-size: 64px; font-weight: 500; letter-spacing: -0.03em;
     font-feature-settings: "tnum";
   }
   .result__bmi .pct {
@@ -431,13 +353,38 @@
     font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
     font-weight: 500; font-feature-settings: "tnum";
   }
-  .mode-note { font-size: 12.5px; color: var(--muted); font-feature-settings: "tnum"; }
+  .mode-note { font-size: 12.5px; color: var(--muted); font-feature-settings: "tnum"; margin: 0; }
+
+  .insights {
+    margin: 6px 0 0;
+    padding: 12px 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13.5px;
+  }
+  .insights .ins-row {
+    display: grid;
+    grid-template-columns: minmax(140px, auto) 1fr;
+    gap: 10px 14px;
+    align-items: baseline;
+  }
+  @media (max-width: 500px) {
+    .insights .ins-row { grid-template-columns: 1fr; gap: 2px; }
+  }
+  .insights .ins-k { color: var(--muted); font-size: 12px; letter-spacing: 0.02em; text-transform: uppercase; font-weight: 500; }
+  .insights .ins-v { color: var(--fg); font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-feature-settings: "tnum"; }
+  .insights .ins-v em { font-style: normal; color: var(--muted); font-family: "IBM Plex Sans", sans-serif; margin-left: 6px; font-size: 12.5px; }
+  .insights .ins-v b { font-weight: 600; }
 
   /* Band */
 
   .band { display: flex; flex-direction: column; gap: 10px; }
   .band__header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-  .band__header h2 { margin: 0; font-size: 16px; font-weight: 600; }
+  .band__header h3 { margin: 0; font-size: 15px; font-weight: 600; }
   .band__hint {
     font-size: 13px; color: var(--muted);
     font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
@@ -447,7 +394,7 @@
   .band__bar {
     position: relative;
     display: flex;
-    width: 100%; height: 56px;
+    width: 100%; height: 50px;
     border-radius: 10px;
     overflow: visible;
     margin-top: 48px;
@@ -561,9 +508,9 @@
 
   .table-wrap {
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 12px;
     overflow-x: auto;
-    background: var(--surface);
+    background: var(--surface-2);
   }
   table { width: 100%; border-collapse: collapse; font-size: 14px; font-feature-settings: "tnum"; }
   thead th {
@@ -597,121 +544,20 @@
   }
   td .inz-mark[data-grade="B"] { background: color-mix(in oklab, var(--cat-ob1) 18%, transparent); color: var(--cat-ob1); }
 
-  /* Overview grid */
-
-  .overview-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 14px;
-  }
-  .ov-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    cursor: pointer;
-    position: relative;
-    text-align: left;
-    font: inherit;
-    color: var(--fg);
-  }
-  .ov-card:hover { border-color: var(--border-strong); }
-  .ov-card[data-active="true"] {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 15%, transparent);
-  }
-  .ov-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-  .ov-head .n { font-weight: 600; font-size: 15px; }
-  .ov-head .sub { font-size: 11px; color: var(--muted); font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-feature-settings: "tnum"; }
-  .ov-chip-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .ov-chip-row .chip { padding: 3px 9px; font-size: 11px; gap: 6px; }
-  .ov-chip-row .chip::before { width: 6px; height: 6px; }
-  .ov-chip-row .inz-chip { padding: 3px 9px; font-size: 11px; }
-  .ov-chip-row .inz-chip .tag { font-size: 10px; padding: 1px 5px; }
-
-  .ov-band {
-    position: relative;
-    display: flex;
-    width: 100%; height: 28px;
-    border-radius: 6px;
-    overflow: visible;
-    margin-top: 24px;
-  }
-  .ov-band--empty {
-    background: var(--surface-2);
-    border: 1px dashed var(--border);
-    color: var(--muted);
-    font-size: 12px;
-    align-items: center;
-    justify-content: center;
-    height: 44px;
-    border-radius: 8px;
-    margin-top: 0;
-  }
-  .ov-seg { height: 100%; }
-  .ov-seg:first-child { border-radius: 6px 0 0 6px; }
-  .ov-seg:last-child  { border-radius: 0 6px 6px 0; }
-  .ov-seg[data-cat="under"]  { background: var(--cat-under); }
-  .ov-seg[data-cat="normal"] { background: var(--cat-normal); }
-  .ov-seg[data-cat="over"]   { background: var(--cat-over); }
-  .ov-seg[data-cat="ob1"]    { background: var(--cat-ob1); }
-  .ov-seg[data-cat="ob2"]    { background: var(--cat-ob2); }
-  .ov-seg[data-cat="ob3"]    { background: var(--cat-ob3); }
-  .ov-safe {
-    position: absolute; top: -4px; bottom: -4px;
-    background: var(--inz-safe); border-radius: 3px;
-    pointer-events: none;
-  }
-  .ov-threshold {
-    position: absolute; top: -6px; bottom: -6px; width: 0;
-    border-left: 1.5px dashed var(--inz-line);
-    pointer-events: none;
-  }
-  .ov-marker {
-    position: absolute; top: -6px; bottom: -6px;
-    width: 2px; background: var(--marker);
-    transform: translateX(-1px);
-    pointer-events: none; z-index: 2;
-  }
-  .ov-marker::before, .ov-marker::after {
-    content: ""; position: absolute; left: 50%;
-    width: 8px; height: 8px; background: var(--marker);
-    transform: translateX(-50%) rotate(45deg);
-  }
-  .ov-marker::before { top: -3px; }
-  .ov-marker::after  { bottom: -3px; }
-  .ov-marker__label {
-    position: absolute; bottom: calc(100% + 8px); left: 50%;
-    transform: translateX(-50%);
-    background: var(--marker); color: var(--bg);
-    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
-    font-size: 10px; font-weight: 500;
-    padding: 2px 6px; border-radius: 4px;
-    white-space: nowrap;
-  }
-  .ov-marker__label::after {
-    content: ""; position: absolute; top: 100%; left: 50%;
-    transform: translateX(-50%);
-    border: 3px solid transparent; border-top-color: var(--marker);
-  }
-
   /* History */
 
   .history-wrap { display: flex; flex-direction: column; gap: 12px; }
   .history-chart {
     width: 100%;
     height: 110px;
-    background: var(--surface);
+    background: var(--surface-2);
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
   }
   .history-list {
     display: flex; flex-direction: column;
-    background: var(--surface);
+    background: var(--surface-2);
     border: 1px solid var(--border);
     border-radius: 12px;
   }
@@ -780,136 +626,19 @@
     </div>
   </header>
 
-  <section>
-    <div class="sec-hdr">
-      <h2>Family</h2>
-      <button class="ghost" id="add-member">+ Add member</button>
-    </div>
-    <div class="roster" id="roster" style="margin-top:10px"></div>
-  </section>
-
-  <section id="overview-wrap" hidden>
-    <div class="sec-hdr">
-      <h2>At a glance</h2>
-    </div>
-    <div class="overview-grid" id="overview" style="margin-top:10px"></div>
+  <section class="sec-hdr">
+    <h2>Family</h2>
+    <button class="ghost" id="add-member">+ Add member</button>
   </section>
 
   <section class="empty" id="empty-state" hidden>
-    <p>No family members yet. Everything you add stays in your browser — nothing is sent anywhere.</p>
+    <p>No family members yet. Everything stays in this browser.</p>
     <button class="primary" id="add-first">+ Add first member</button>
   </section>
 
-  <section id="detail" hidden style="display:flex;flex-direction:column;gap:28px">
-    <div class="detail__hdr">
-      <input type="text" id="name" class="name-input" placeholder="Name">
-      <button class="danger" id="delete-member">Remove</button>
-    </div>
+  <section class="members" id="members"></section>
 
-    <section class="inputs" aria-label="Measurements">
-      <div class="field">
-        <label for="dob">Date of birth</label>
-        <div class="row"><input id="dob" type="date"></div>
-      </div>
-
-      <div class="field age-field">
-        <label>Age</label>
-        <div class="age-val" id="age-display">—</div>
-      </div>
-
-      <div class="field">
-        <label for="sex">Sex at birth</label>
-        <div class="row">
-          <select id="sex">
-            <option value="female">Female</option>
-            <option value="male">Male</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field has-unit" data-group="metric" id="field-h-cm">
-        <label for="height-cm">Height</label>
-        <div class="row">
-          <input id="height-cm" type="text" inputmode="decimal" placeholder="170">
-          <span class="unit">cm</span>
-        </div>
-      </div>
-
-      <div class="field split-field" data-group="imperial" id="field-h-ft" hidden>
-        <label>Height</label>
-        <div class="row">
-          <input id="height-ft" type="text" inputmode="numeric" placeholder="5" aria-label="Feet">
-          <span class="unit">ft</span>
-          <input id="height-in" type="text" inputmode="decimal" placeholder="7" aria-label="Inches">
-          <span class="unit">in</span>
-        </div>
-      </div>
-
-      <div class="field has-unit" data-group="metric" id="field-w-kg">
-        <label for="weight-kg">Current weight</label>
-        <div class="row">
-          <input id="weight-kg" type="text" inputmode="decimal" placeholder="70">
-          <span class="unit">kg</span>
-        </div>
-      </div>
-
-      <div class="field has-unit" data-group="imperial" id="field-w-lb" hidden>
-        <label for="weight-lb">Current weight</label>
-        <div class="row">
-          <input id="weight-lb" type="text" inputmode="decimal" placeholder="154">
-          <span class="unit">lb</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="result" aria-live="polite">
-      <div class="result__bmi">
-        <span class="label" id="main-label">BMI</span>
-        <span class="value" id="bmi-value">—</span>
-        <span class="pct" id="pct-line" hidden></span>
-      </div>
-      <div class="result__cat">
-        <div class="chips">
-          <span class="inz-chip" id="inz-chip" data-grade="info">—</span>
-          <span class="chip" id="cat-chip" data-cat="info">—</span>
-        </div>
-        <p class="result__detail" id="result-detail">Enter the measurements to see the reading.</p>
-        <p class="mode-note" id="mode-note" hidden></p>
-      </div>
-    </section>
-
-    <section class="band" aria-label="Weight band at this height">
-      <div class="band__header">
-        <h2 id="band-title">Weight band at this height</h2>
-        <span class="band__hint" id="height-hint">—</span>
-      </div>
-      <div class="band__bar" id="band-bar"></div>
-      <div class="band__ticks" id="band-ticks"></div>
-      <div class="band__legend" id="band-legend"></div>
-    </section>
-
-    <section class="table-wrap">
-      <table id="ranges">
-        <thead>
-          <tr><th>Category</th><th id="th-mid">BMI</th><th>Weight at this height</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-    <section class="history-wrap">
-      <div class="sec-hdr">
-        <h2>Weight history</h2>
-        <button class="ghost" id="log-weight">+ Log today's weight</button>
-      </div>
-      <svg class="history-chart" id="history-chart" viewBox="0 0 600 110" preserveAspectRatio="none" aria-hidden="true"></svg>
-      <div class="history-list" id="history-list"></div>
-    </section>
-  </section>
-
-  <section class="notes" id="notes">
-    <p class="stop" id="age-stop" hidden></p>
-    <p class="warn" id="age-warn" hidden></p>
+  <section class="notes">
     <p id="inz-note"></p>
     <p id="formula-note"></p>
     <p id="source-note"></p>
@@ -943,11 +672,11 @@ const STORAGE_KEY = 'bmi-bands.v1';
 
 const state = {
   units: 'metric',
-  selectedId: null,
   members: [],
 };
 
-const el = (id) => document.getElementById(id);
+const $ = (sel, root) => (root || document).querySelector(sel);
+const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
 
 // -- storage --
 
@@ -959,10 +688,6 @@ function loadState() {
     if (data && typeof data === 'object') {
       state.units = data.units === 'imperial' ? 'imperial' : 'metric';
       state.members = Array.isArray(data.members) ? data.members : [];
-      state.selectedId = data.selectedId || null;
-      if (state.members.length && !state.members.find(m => m.id === state.selectedId)) {
-        state.selectedId = state.members[0].id;
-      }
     }
   } catch {}
 }
@@ -970,7 +695,6 @@ function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       units: state.units,
-      selectedId: state.selectedId,
       members: state.members,
     }));
   } catch {}
@@ -1012,13 +736,8 @@ function ageFromDob(dobStr) {
 }
 function formatAge(years) {
   if (years === null || !isFinite(years)) return '—';
-  if (years < 2) {
-    const months = Math.round(years * 12);
-    return `${months} months`;
-  }
-  if (years < 18) {
-    return `${years.toFixed(1).replace(/\.0$/, '')} yr`;
-  }
+  if (years < 2) return `${Math.round(years * 12)} months`;
+  if (years < 18) return `${years.toFixed(1).replace(/\.0$/, '')} yr`;
   return `${Math.floor(years)} yr`;
 }
 
@@ -1091,16 +810,6 @@ function fmtWeightDelta(kg) {
   return `${kg.toFixed(1)} kg`;
 }
 
-function currentMember() {
-  return state.members.find(m => m.id === state.selectedId) || null;
-}
-
-function bmiOf(m) {
-  if (!m || !m.heightCm || !m.weightKg) return null;
-  const h = m.heightCm / 100;
-  return m.weightKg / (h * h);
-}
-
 function pctSuffix(p) {
   const n = Math.round(p);
   const mod100 = n % 100, mod10 = n % 10;
@@ -1116,6 +825,10 @@ function pctLabel(p) {
   return pctSuffix(p);
 }
 
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 // -- member actions --
 
 function addMember() {
@@ -1129,29 +842,28 @@ function addMember() {
     readings: [],
   };
   state.members.push(m);
-  state.selectedId = m.id;
   saveState();
   renderAll();
-  setTimeout(() => el('name').focus(), 0);
+  const panel = document.querySelector(`[data-member="${m.id}"]`);
+  if (panel) {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const nameInput = panel.querySelector('.name-input');
+    if (nameInput) {
+      nameInput.focus();
+      nameInput.select();
+    }
+  }
 }
 function removeMember(id) {
   const idx = state.members.findIndex(m => m.id === id);
   if (idx < 0) return;
-  const name = state.members[idx].name;
-  if (!confirmFallback(`Remove ${name}? This clears their stored data in this browser.`)) return;
+  if (!confirm(`Remove ${state.members[idx].name}? This clears their data in this browser.`)) return;
   state.members.splice(idx, 1);
-  if (state.selectedId === id) {
-    state.selectedId = state.members[0]?.id || null;
-  }
   saveState();
   renderAll();
 }
-function confirmFallback(msg) {
-  try { return window.confirm(msg); } catch { return true; }
-}
-
-function logWeight() {
-  const m = currentMember();
+function logWeight(id) {
+  const m = state.members.find(x => x.id === id);
   if (!m || !m.weightKg) return;
   m.readings = m.readings || [];
   const d = todayISO();
@@ -1160,310 +872,214 @@ function logWeight() {
   else m.readings.push({ date: d, weightKg: m.weightKg });
   m.readings.sort((a, b) => a.date.localeCompare(b.date));
   saveState();
-  renderHistory();
+  updatePanel(m);
 }
-function deleteReading(date) {
-  const m = currentMember();
+function deleteReading(id, date) {
+  const m = state.members.find(x => x.id === id);
   if (!m) return;
   m.readings = (m.readings || []).filter(r => r.date !== date);
   saveState();
-  renderHistory();
+  updatePanel(m);
 }
 
 // -- rendering --
 
 function renderAll() {
-  renderUnitToggle();
-  renderRoster();
-  renderOverview();
-  renderDetail();
-}
-
-function miniBandHtml(m) {
-  const ageYears = ageFromDob(m.dob);
-  const mode = modeFor(ageYears);
-  const h = m.heightCm ? m.heightCm / 100 : null;
-  const w = m.weightKg;
-  const bmi = (h && w) ? w / (h*h) : null;
-
-  if (!h || !w) {
-    return `<div class="ov-band ov-band--empty">Add height and weight to see the band</div>`;
-  }
-  if (mode === 'invalid') {
-    return `<div class="ov-band ov-band--empty">Add date of birth to pick the right band</div>`;
-  }
-  if (mode === 'infant') {
-    return `<div class="ov-band ov-band--empty">Under age 2: not a BMI band — see growth charts</div>`;
-  }
-
-  if (mode === 'adult') {
-    const BAND_MIN = 15, BAND_MAX = 45;
-    const toPct = (b) => ((b - BAND_MIN) / (BAND_MAX - BAND_MIN)) * 100;
-    const segs = [
-      { key:'under', from:15, to:18.5 },
-      { key:'normal', from:18.5, to:25 },
-      { key:'over', from:25, to:30 },
-      { key:'ob1', from:30, to:35 },
-      { key:'ob2', from:35, to:40 },
-      { key:'ob3', from:40, to:45 },
-    ];
-    const safeL = toPct(INZ_BMI_MIN), safeR = toPct(INZ_BMI_MAX);
-    const thrL = toPct(INZ_BMI_MAX);
-    const pos = Math.max(0, Math.min(100, toPct(bmi)));
-    return `<div class="ov-band">
-      <div class="ov-safe" style="left:${safeL}%;width:${safeR-safeL}%"></div>
-      ${segs.map(s => `<div class="ov-seg" data-cat="${s.key}" style="flex-basis:${((s.to-s.from)/(BAND_MAX-BAND_MIN))*100}%"></div>`).join('')}
-      <div class="ov-threshold" style="left:${thrL}%"></div>
-      <div class="ov-marker" style="left:${pos}%"><span class="ov-marker__label">${fmtWeight(w)} · BMI ${bmi.toFixed(1)}</span></div>
-    </div>`;
-  }
-
-  // child
-  const sex = m.sex || 'female';
-  const { L, M, S } = lmsFor(sex, ageYears * 12);
-  const bmi5 = bmiFromZ(Z_P5, L, M, S);
-  const bmi85 = bmiFromZ(Z_P85, L, M, S);
-  const bmi95 = bmiFromZ(Z_P95, L, M, S);
-  const bmi120 = 1.2 * bmi95;
-  const bmiLo = bmiFromZ(-3, L, M, S);
-  const bmiHi = Math.max(bmiFromZ(3, L, M, S), bmi120 * 1.05);
-  const RANGE = bmiHi - bmiLo;
-  const toPct = (b) => ((b - bmiLo) / RANGE) * 100;
-  const segs = [
-    { key:'under',  from: bmiLo,  to: bmi5 },
-    { key:'normal', from: bmi5,   to: bmi85 },
-    { key:'over',   from: bmi85,  to: bmi95 },
-    { key:'ob1',    from: bmi95,  to: bmi120 },
-    { key:'ob2',    from: bmi120, to: bmiHi },
-  ];
-  const safeL = toPct(bmi5), safeR = toPct(bmi85);
-  const pos = Math.max(0, Math.min(100, toPct(bmi)));
-  const pct = normCdf(bmiToZ(bmi, L, M, S)) * 100;
-  return `<div class="ov-band">
-    <div class="ov-safe" style="left:${safeL}%;width:${safeR-safeL}%"></div>
-    ${segs.map(s => `<div class="ov-seg" data-cat="${s.key}" style="flex-basis:${((s.to-s.from)/RANGE)*100}%"></div>`).join('')}
-    <div class="ov-marker" style="left:${pos}%"><span class="ov-marker__label">${fmtWeight(w)} · ${pctLabel(pct)}</span></div>
-  </div>`;
-}
-
-function renderOverview() {
-  const wrap = el('overview-wrap');
-  const grid = el('overview');
-  if (state.members.length === 0) {
-    wrap.hidden = true;
-    grid.innerHTML = '';
-    return;
-  }
-  wrap.hidden = false;
-
-  grid.innerHTML = state.members.map(m => {
-    const bmi = bmiOf(m);
-    const ageYears = ageFromDob(m.dob);
-    const mode = modeFor(ageYears);
-    const h = m.heightCm ? m.heightCm / 100 : null;
-
-    let catKey = 'info', catLabel = '—';
-    let inzGrade = 'info', inzText = '—', inzTag = '';
-    if (bmi !== null) {
-      if (mode === 'adult') {
-        const c = adultCategoryFor(bmi);
-        catKey = c.key; catLabel = c.label;
-        if (bmi >= INZ_BMI_MIN && bmi <= INZ_BMI_MAX) {
-          inzGrade = 'A'; inzText = 'INZ A grade'; inzTag = `${INZ_BMI_MIN}–${INZ_BMI_MAX}`;
-        } else if (bmi > INZ_BMI_MAX) {
-          inzGrade = 'B'; inzText = 'INZ B grade'; inzTag = `> ${INZ_BMI_MAX}`;
-        } else {
-          inzGrade = 'B'; inzText = 'INZ B grade'; inzTag = `< ${INZ_BMI_MIN}`;
-        }
-      } else if (mode === 'child' && h) {
-        const { L, M, S } = lmsFor(m.sex || 'female', ageYears * 12);
-        const c = childCategoryFor(bmi, L, M, S);
-        catKey = c.key; catLabel = c.label;
-        const pct = normCdf(bmiToZ(bmi, L, M, S)) * 100;
-        inzGrade = 'info'; inzText = 'INZ records'; inzTag = pctLabel(pct);
-      } else if (mode === 'infant') {
-        catLabel = 'Infant growth chart';
-      }
-    } else {
-      catLabel = mode === 'infant' ? 'Infant growth chart' : 'Awaiting data';
-    }
-
-    const ageStr = ageYears !== null ? formatAge(ageYears) : 'no DOB';
-    const hStr = h ? (state.units === 'metric' ? `${(h*100).toFixed(0)} cm` : `${mToFtIn(h).ft}′${mToFtIn(h).inch.toFixed(1)}″`) : '—';
-    const active = m.id === state.selectedId;
-
-    return `
-      <button type="button" class="ov-card" data-id="${m.id}" data-active="${active}">
-        <div class="ov-head">
-          <span class="n">${escapeHtml(m.name || 'Unnamed')}</span>
-          <span class="sub">${ageStr} · ${hStr}</span>
-        </div>
-        <div class="ov-chip-row">
-          <span class="inz-chip" data-grade="${inzGrade}">${inzText}${inzTag ? ` <span class="tag">${inzTag}</span>` : ''}</span>
-          <span class="chip" data-cat="${catKey}">${catLabel}</span>
-        </div>
-        ${miniBandHtml(m)}
-      </button>
-    `;
-  }).join('');
-
-  grid.querySelectorAll('.ov-card').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.selectedId = btn.dataset.id;
-      saveState();
-      renderAll();
-      const detail = el('detail');
-      if (detail && typeof detail.scrollIntoView === 'function') {
-        detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  });
-}
-
-function renderUnitToggle() {
-  document.querySelectorAll('.unit-toggle button').forEach(b => {
+  document.documentElement.dataset.units = state.units;
+  $$('.unit-toggle button').forEach(b => {
     b.setAttribute('aria-selected', String(b.dataset.units === state.units));
   });
-}
 
-function renderRoster() {
-  const roster = el('roster');
-  const empty = el('empty-state');
-  const detail = el('detail');
-
+  const container = $('#members');
+  const empty = $('#empty-state');
   if (state.members.length === 0) {
-    roster.innerHTML = '';
+    container.innerHTML = '';
     empty.hidden = false;
-    detail.hidden = true;
     return;
   }
   empty.hidden = true;
-  detail.hidden = false;
 
-  roster.innerHTML = state.members.map(m => {
-    const bmi = bmiOf(m);
-    const ageYears = ageFromDob(m.dob);
-    const mode = modeFor(ageYears);
-    let catKey = 'info', chipText = '—', bmiText = '—';
-    if (bmi !== null) {
-      bmiText = bmi.toFixed(1);
-      if (mode === 'adult') {
-        catKey = adultCategoryFor(bmi).key;
-        chipText = bmi >= INZ_BMI_MIN && bmi <= INZ_BMI_MAX ? 'A grade' : 'B grade';
-      } else if (mode === 'child') {
-        const ageMos = ageYears * 12;
-        const { L, M, S } = lmsFor(m.sex || 'female', ageMos);
-        const pct = normCdf(bmiToZ(bmi, L, M, S)) * 100;
-        catKey = childCategoryFor(bmi, L, M, S).key;
-        chipText = pctLabel(pct);
-      } else if (mode === 'infant') {
-        chipText = 'infant';
-        bmiText = '—';
-      }
-    } else {
-      chipText = mode === 'infant' ? 'infant' : 'enter data';
-    }
-    const initial = (m.name || '?').trim().charAt(0).toUpperCase() || '?';
-    const sub = ageYears !== null ? formatAge(ageYears) : 'no DOB';
-    const active = m.id === state.selectedId;
-    return `
-      <button type="button" class="m-card" data-id="${m.id}" data-active="${active}" data-cat="${catKey}">
-        <div style="display:flex;align-items:center;gap:8px;min-width:0">
-          <span class="initial">${initial}</span>
-          <div style="display:flex;flex-direction:column;min-width:0">
-            <span class="m-name">${escapeHtml(m.name || 'Unnamed')}</span>
-            <span class="m-sub">${sub}</span>
+  container.innerHTML = state.members.map(m => panelHtml(m)).join('');
+  state.members.forEach(m => {
+    const panel = $(`[data-member="${m.id}"]`);
+    attachPanelHandlers(panel, m);
+    updatePanel(m, panel);
+  });
+}
+
+function panelHtml(m) {
+  const metricH = m.heightCm != null ? m.heightCm.toFixed(1).replace(/\.0$/, '') : '';
+  const metricW = m.weightKg != null ? m.weightKg.toFixed(1).replace(/\.0$/, '') : '';
+  let impFt = '', impIn = '', impLb = '';
+  if (m.heightCm != null) {
+    const { ft, inch } = mToFtIn(m.heightCm / 100);
+    impFt = ft; impIn = inch.toFixed(1).replace(/\.0$/, '');
+  }
+  if (m.weightKg != null) impLb = kgToLb(m.weightKg).toFixed(1).replace(/\.0$/, '');
+
+  return `
+    <article class="panel" data-member="${m.id}">
+      <div class="panel__hdr">
+        <input class="name-input" data-f="name" value="${escapeHtml(m.name || '')}" placeholder="Name" aria-label="Name">
+        <button class="danger" data-action="remove">Remove</button>
+      </div>
+
+      <div class="inputs">
+        <div class="field">
+          <label>Date of birth</label>
+          <div class="row"><input type="date" data-f="dob" value="${m.dob || ''}"></div>
+        </div>
+        <div class="field age-field">
+          <label>Age</label>
+          <div class="age-val" data-r="age">—</div>
+        </div>
+        <div class="field">
+          <label>Sex at birth</label>
+          <div class="row">
+            <select data-f="sex">
+              <option value="female" ${m.sex === 'female' ? 'selected' : ''}>Female</option>
+              <option value="male" ${m.sex === 'male' ? 'selected' : ''}>Male</option>
+            </select>
           </div>
         </div>
-        <div class="m-bmi">${bmiText}</div>
-        <span class="m-chip">${chipText}</span>
-      </button>
-    `;
-  }).join('') + `
-    <button type="button" class="m-add" id="add-another">+ Add another</button>
+
+        <div class="field has-unit only-metric">
+          <label>Height</label>
+          <div class="row">
+            <input type="text" inputmode="decimal" data-f="height-cm" value="${metricH}" placeholder="170">
+            <span class="unit">cm</span>
+          </div>
+        </div>
+        <div class="field split-field only-imperial">
+          <label>Height</label>
+          <div class="row">
+            <input type="text" inputmode="numeric" data-f="height-ft" value="${impFt}" placeholder="5" aria-label="Feet">
+            <span class="unit">ft</span>
+            <input type="text" inputmode="decimal" data-f="height-in" value="${impIn}" placeholder="7" aria-label="Inches">
+            <span class="unit">in</span>
+          </div>
+        </div>
+
+        <div class="field has-unit only-metric">
+          <label>Current weight</label>
+          <div class="row">
+            <input type="text" inputmode="decimal" data-f="weight-kg" value="${metricW}" placeholder="70">
+            <span class="unit">kg</span>
+          </div>
+        </div>
+        <div class="field has-unit only-imperial">
+          <label>Current weight</label>
+          <div class="row">
+            <input type="text" inputmode="decimal" data-f="weight-lb" value="${impLb}" placeholder="154">
+            <span class="unit">lb</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="result">
+        <div class="result__bmi">
+          <span class="label" data-r="main-label">BMI</span>
+          <span class="value" data-r="bmi">—</span>
+          <span class="pct" data-r="pct" hidden></span>
+        </div>
+        <div class="result__cat">
+          <div class="chips">
+            <span class="inz-chip" data-r="inz" data-grade="info">—</span>
+            <span class="chip" data-r="cat" data-cat="info">—</span>
+          </div>
+          <p class="result__detail" data-r="detail">—</p>
+          <div class="insights" data-r="insights" hidden></div>
+          <p class="mode-note" data-r="note" hidden></p>
+        </div>
+      </div>
+
+      <div class="band">
+        <div class="band__header">
+          <h3 data-r="band-title">Weight band at this height</h3>
+          <span class="band__hint" data-r="height-hint">—</span>
+        </div>
+        <div class="band__bar" data-r="bar"></div>
+        <div class="band__ticks" data-r="ticks"></div>
+        <div class="band__legend" data-r="legend"></div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Category</th><th data-r="th-mid">BMI</th><th>Weight at this height</th></tr>
+          </thead>
+          <tbody data-r="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="history-wrap">
+        <div class="sec-hdr">
+          <h2>Weight history</h2>
+          <button class="ghost" data-action="log">+ Log today's weight</button>
+        </div>
+        <svg class="history-chart" data-r="chart" viewBox="0 0 600 110" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="history-list" data-r="history"></div>
+      </div>
+    </article>
   `;
+}
 
-  roster.querySelectorAll('.m-card').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.selectedId = btn.dataset.id;
+function attachPanelHandlers(panel, m) {
+  $$('[data-f]', panel).forEach(node => {
+    const handler = () => {
+      readPanelInputs(panel, m);
       saveState();
-      renderDetail();
-      renderRoster();
-    });
+      updatePanel(m, panel);
+    };
+    node.addEventListener('input', handler);
+    node.addEventListener('change', handler);
   });
-  const addAnother = document.getElementById('add-another');
-  if (addAnother) addAnother.addEventListener('click', addMember);
+
+  $('[data-action="remove"]', panel).addEventListener('click', () => removeMember(m.id));
+  $('[data-action="log"]', panel).addEventListener('click', () => {
+    readPanelInputs(panel, m);
+    saveState();
+    logWeight(m.id);
+  });
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-
-function renderDetail() {
-  const m = currentMember();
-  if (!m) return;
-
-  // Fill inputs
-  el('name').value = m.name || '';
-  el('dob').value = m.dob || '';
-  el('sex').value = m.sex || 'female';
-  syncUnitFields();
-
-  const ageYears = ageFromDob(m.dob);
-  el('age-display').textContent = formatAge(ageYears);
-
-  render();
-}
-
-function syncUnitFields() {
-  const m = currentMember();
-  if (!m) return;
-  const metric = state.units === 'metric';
-  el('field-h-cm').hidden = !metric;
-  el('field-w-kg').hidden = !metric;
-  el('field-h-ft').hidden = metric;
-  el('field-w-lb').hidden = metric;
-
-  if (metric) {
-    el('height-cm').value = m.heightCm != null ? m.heightCm.toFixed(1).replace(/\.0$/, '') : '';
-    el('weight-kg').value = m.weightKg != null ? m.weightKg.toFixed(1).replace(/\.0$/, '') : '';
-  } else {
-    if (m.heightCm != null) {
-      const { ft, inch } = mToFtIn(m.heightCm / 100);
-      el('height-ft').value = ft;
-      el('height-in').value = inch.toFixed(1).replace(/\.0$/, '');
-    } else {
-      el('height-ft').value = '';
-      el('height-in').value = '';
-    }
-    el('weight-lb').value = m.weightKg != null ? kgToLb(m.weightKg).toFixed(1).replace(/\.0$/, '') : '';
-  }
-
-  renderUnitToggle();
-}
-
-function readMemberInputs() {
-  const m = currentMember();
-  if (!m) return;
-  m.name = el('name').value;
-  m.dob = el('dob').value || null;
-  m.sex = el('sex').value;
+function readPanelInputs(panel, m) {
+  m.name = $('[data-f="name"]', panel).value;
+  m.dob = $('[data-f="dob"]', panel).value || null;
+  m.sex = $('[data-f="sex"]', panel).value;
   if (state.units === 'metric') {
-    m.heightCm = parseDec(el('height-cm').value);
-    m.weightKg = parseDec(el('weight-kg').value);
+    m.heightCm = parseDec($('[data-f="height-cm"]', panel).value);
+    m.weightKg = parseDec($('[data-f="weight-kg"]', panel).value);
   } else {
-    const ft = parseDec(el('height-ft').value) || 0;
-    const inch = parseDec(el('height-in').value) || 0;
+    const ft = parseDec($('[data-f="height-ft"]', panel).value) || 0;
+    const inch = parseDec($('[data-f="height-in"]', panel).value) || 0;
     const totalIn = ft * 12 + inch;
     m.heightCm = totalIn > 0 ? inToCm(totalIn) : null;
-    const lb = parseDec(el('weight-lb').value);
+    const lb = parseDec($('[data-f="weight-lb"]', panel).value);
     m.weightKg = lb ? lbToKg(lb) : null;
   }
 }
 
-function render() {
-  const m = currentMember();
-  if (!m) return;
+function syncPanelUnitFields(panel, m) {
+  if (state.units === 'metric') {
+    $('[data-f="height-cm"]', panel).value = m.heightCm != null ? m.heightCm.toFixed(1).replace(/\.0$/, '') : '';
+    $('[data-f="weight-kg"]', panel).value = m.weightKg != null ? m.weightKg.toFixed(1).replace(/\.0$/, '') : '';
+  } else {
+    if (m.heightCm != null) {
+      const { ft, inch } = mToFtIn(m.heightCm / 100);
+      $('[data-f="height-ft"]', panel).value = ft;
+      $('[data-f="height-in"]', panel).value = inch.toFixed(1).replace(/\.0$/, '');
+    } else {
+      $('[data-f="height-ft"]', panel).value = '';
+      $('[data-f="height-in"]', panel).value = '';
+    }
+    $('[data-f="weight-lb"]', panel).value = m.weightKg != null ? kgToLb(m.weightKg).toFixed(1).replace(/\.0$/, '') : '';
+  }
+}
+
+function updatePanel(m, panel) {
+  panel = panel || $(`[data-member="${m.id}"]`);
+  if (!panel) return;
 
   const ageYears = ageFromDob(m.dob);
   const mode = modeFor(ageYears);
@@ -1471,112 +1087,113 @@ function render() {
   const w = m.weightKg;
   const bmi = (h && w) ? w / (h * h) : null;
 
-  el('bmi-value').textContent = bmi !== null ? bmi.toFixed(1) : '—';
-  el('age-display').textContent = formatAge(ageYears);
-  el('height-hint').textContent = h ? (state.units === 'metric'
-      ? `${(h*100).toFixed(0)} cm · ${h.toFixed(2)} m`
-      : `${mToFtIn(h).ft}′${mToFtIn(h).inch.toFixed(1)}″ · ${h.toFixed(2)} m`) : '—';
+  $('[data-r="age"]', panel).textContent = formatAge(ageYears);
+  $('[data-r="bmi"]', panel).textContent = bmi !== null ? bmi.toFixed(1) : '—';
+  $('[data-r="height-hint"]', panel).textContent = h ? (state.units === 'metric'
+    ? `${(h*100).toFixed(0)} cm · ${h.toFixed(2)} m`
+    : `${mToFtIn(h).ft}′${mToFtIn(h).inch.toFixed(1)}″ · ${h.toFixed(2)} m`) : '—';
 
-  el('pct-line').hidden = true;
-  el('age-warn').hidden = true;
-  el('age-stop').hidden = true;
-  el('mode-note').hidden = true;
-  el('main-label').textContent = 'BMI';
+  const pctEl = $('[data-r="pct"]', panel);
+  const noteEl = $('[data-r="note"]', panel);
+  pctEl.hidden = true;
+  noteEl.hidden = true;
+  $('[data-r="main-label"]', panel).textContent = 'BMI';
+
+  $('[data-r="insights"]', panel).hidden = true;
 
   if (!h || !w) {
-    showInzChip('info', 'Waiting for data', '');
-    setChip('cat-chip', 'info', 'Fill in height and weight');
-    el('result-detail').textContent = 'Enter date of birth, sex, height and current weight.';
-    renderBand('empty');
-    renderTable('empty');
-    renderHistory();
+    setChip(panel, 'cat', 'info', 'Fill in height and weight');
+    setInz(panel, 'info', 'Waiting for data', '');
+    $('[data-r="detail"]', panel).textContent = 'Enter date of birth, sex, height and current weight.';
+    renderBand(panel, 'empty');
+    renderTable(panel, 'empty');
+    renderHistory(panel, m);
     return;
   }
-
   if (mode === 'invalid') {
-    showInzChip('info', 'Enter date of birth', '');
-    setChip('cat-chip', 'info', '—');
-    el('result-detail').textContent = 'Pick a date of birth to get the right band (adult BMI or child percentile).';
-    renderBand('empty');
-    renderTable('empty');
-    renderHistory();
+    setChip(panel, 'cat', 'info', '—');
+    setInz(panel, 'info', 'Enter date of birth', '');
+    $('[data-r="detail"]', panel).textContent = 'Pick a date of birth to get the right band.';
+    renderBand(panel, 'empty');
+    renderTable(panel, 'empty');
+    renderHistory(panel, m);
     return;
   }
-
   if (mode === 'infant') {
-    renderInfant();
-    renderHistory();
+    $('[data-r="main-label"]', panel).textContent = 'Not applicable';
+    $('[data-r="bmi"]', panel).textContent = '—';
+    setChip(panel, 'cat', 'info', 'Use growth charts');
+    setInz(panel, 'info', 'Infant: head circumference & weight', 'under 2y');
+    $('[data-r="detail"]', panel).innerHTML = 'INZ 1216 does not use BMI below age 2. Panel physicians record weight, length and head circumference against the appropriate growth chart. Head circumference below the 3rd centile triggers referral.';
+    renderBand(panel, 'empty');
+    renderTable(panel, 'empty');
+    renderHistory(panel, m);
     return;
   }
 
   if (mode === 'child') {
-    renderChild(bmi, h, w, ageYears);
+    updateChild(panel, m, bmi, h, w, ageYears);
   } else {
-    renderAdult(bmi, h, w);
+    updateAdult(panel, m, bmi, h, w);
   }
-
-  renderHistory();
+  renderHistory(panel, m);
 }
 
-function setChip(id, cat, text) {
-  const c = el(id);
-  c.setAttribute('data-cat', cat);
+function setChip(panel, which, key, text) {
+  const c = $(`[data-r="${which}"]`, panel);
+  c.setAttribute('data-cat', key);
   c.textContent = text;
 }
-function showInzChip(grade, text, tag) {
-  const c = el('inz-chip');
+function setInz(panel, grade, text, tag) {
+  const c = $('[data-r="inz"]', panel);
   c.setAttribute('data-grade', grade);
   c.innerHTML = tag ? `${text} <span class="tag">${tag}</span>` : text;
 }
 
-function renderAdult(bmi, h, w) {
+function updateAdult(panel, m, bmi, h, w) {
   const cat = adultCategoryFor(bmi);
-  setChip('cat-chip', cat.key, cat.label);
+  setChip(panel, 'cat', cat.key, cat.label);
 
   const inzOk = bmi >= INZ_BMI_MIN && bmi <= INZ_BMI_MAX;
-  if (inzOk) showInzChip('A', 'INZ panel: BMI in A-grade range', `${INZ_BMI_MIN}–${INZ_BMI_MAX}`);
-  else if (bmi > INZ_BMI_MAX) showInzChip('B', 'INZ panel: BMI above A-grade range', `> ${INZ_BMI_MAX}`);
-  else showInzChip('B', 'INZ panel: BMI below A-grade range', `< ${INZ_BMI_MIN}`);
+  if (inzOk) setInz(panel, 'A', 'INZ panel: BMI in A-grade range', `${INZ_BMI_MIN}–${INZ_BMI_MAX}`);
+  else if (bmi > INZ_BMI_MAX) setInz(panel, 'B', 'INZ panel: BMI above A-grade range', `> ${INZ_BMI_MAX}`);
+  else setInz(panel, 'B', 'INZ panel: BMI below A-grade range', `< ${INZ_BMI_MIN}`);
 
   const wInzLow = INZ_BMI_MIN * h * h;
   const wInzHigh = INZ_BMI_MAX * h * h;
   const wNormalHigh = 25 * h * h;
 
-  const detail = el('result-detail');
+  const detail = $('[data-r="detail"]', panel);
   if (inzOk && cat.key === 'normal') {
-    const toUpper = wInzHigh - w;
-    detail.innerHTML = `Inside the panel's A-grade BMI band (<span class="mono">${fmtWeight(wInzLow)}</span>–<span class="mono">${fmtWeight(wInzHigh)}</span>) and inside the WHO normal range. The band tops out <span class="mono">${fmtWeightDelta(toUpper)}</span> above current weight.`;
+    detail.innerHTML = `Inside the panel's A-grade BMI band (<span class="mono">${fmtWeight(wInzLow)}</span>–<span class="mono">${fmtWeight(wInzHigh)}</span>) and inside the WHO normal range. The band tops out <span class="mono">${fmtWeightDelta(wInzHigh - w)}</span> above current weight.`;
   } else if (inzOk && cat.key === 'over') {
-    const toTop = wInzHigh - w;
-    detail.innerHTML = `Inside the panel's A-grade BMI band (BMI ≤ ${INZ_BMI_MAX}) with <span class="mono">${fmtWeightDelta(toTop)}</span> of headroom. WHO calls this overweight; the panel accepts up to BMI ${INZ_BMI_MAX}.`;
+    detail.innerHTML = `Inside the panel's A-grade BMI band (BMI ≤ ${INZ_BMI_MAX}) with <span class="mono">${fmtWeightDelta(wInzHigh - w)}</span> of headroom. WHO calls this overweight; the panel accepts up to BMI ${INZ_BMI_MAX}.`;
   } else if (bmi > INZ_BMI_MAX) {
-    const toInz = w - wInzHigh;
-    detail.innerHTML = `<span class="mono">${fmtWeightDelta(toInz)}</span> above the panel's BMI 30 threshold. To reach BMI 30 at this height, weight needs to drop to <span class="mono">${fmtWeight(wInzHigh)}</span>. The WHO normal upper bound (BMI 25) is <span class="mono">${fmtWeight(wNormalHigh)}</span>.`;
+    detail.innerHTML = `<span class="mono">${fmtWeightDelta(w - wInzHigh)}</span> above the panel's BMI 30 threshold. To reach BMI 30 at this height, weight needs to drop to <span class="mono">${fmtWeight(wInzHigh)}</span>. WHO normal upper bound (BMI 25) is <span class="mono">${fmtWeight(wNormalHigh)}</span>.`;
   } else {
-    const toInz = wInzLow - w;
-    detail.innerHTML = `<span class="mono">${fmtWeightDelta(toInz)}</span> below BMI ${INZ_BMI_MIN}. BMI ${INZ_BMI_MIN} at this height is <span class="mono">${fmtWeight(wInzLow)}</span>. The panel treats the "normal range" as part of A-grade, so below ${INZ_BMI_MIN} also sits outside.`;
+    detail.innerHTML = `<span class="mono">${fmtWeightDelta(wInzLow - w)}</span> below BMI ${INZ_BMI_MIN}. BMI ${INZ_BMI_MIN} at this height is <span class="mono">${fmtWeight(wInzLow)}</span>. The panel treats the "normal range" as part of A-grade, so below ${INZ_BMI_MIN} also sits outside.`;
   }
 
-  el('mode-note').hidden = false;
-  el('mode-note').textContent = 'Adult rules: BMI is calculated for applicants over 18. The panel uses BMI alongside blood pressure, urinalysis, cardiovascular, respiratory and other checks.';
+  const note = $('[data-r="note"]', panel);
+  note.hidden = false;
+  note.textContent = 'Adult rules: BMI is calculated for applicants over 18. The panel uses BMI alongside blood pressure, urinalysis, cardiovascular, respiratory and other checks.';
 
-  el('band-title').textContent = 'Weight band at this height';
-  renderBand('adult', { h });
-  renderTable('adult', { h, bmi, catKey: cat.key });
+  $('[data-r="band-title"]', panel).textContent = 'Weight band at this height';
+  renderBand(panel, 'adult', { h, w });
+  renderTable(panel, 'adult', { h, bmi, catKey: cat.key });
 }
 
-function renderChild(bmi, h, w, ageYears) {
-  const sex = currentMember().sex || 'female';
-  const ageMos = ageYears * 12;
-  const { L, M, S } = lmsFor(sex, ageMos);
+function updateChild(panel, m, bmi, h, w, ageYears) {
+  const sex = m.sex || 'female';
+  const { L, M, S } = lmsFor(sex, ageYears * 12);
   const z = bmiToZ(bmi, L, M, S);
   const pct = normCdf(z) * 100;
   const cat = childCategoryFor(bmi, L, M, S);
 
-  setChip('cat-chip', cat.key, cat.label);
-  showInzChip('info', 'INZ records this percentile', `CDC ${sex === 'male' ? 'boys' : 'girls'}`);
+  setChip(panel, 'cat', cat.key, cat.label);
+  setInz(panel, 'info', 'INZ records this percentile', `CDC ${sex === 'male' ? 'boys' : 'girls'}`);
 
-  const pctEl = el('pct-line');
+  const pctEl = $('[data-r="pct"]', panel);
   pctEl.hidden = false;
   pctEl.innerHTML = `<b>${pctLabel(pct)}</b> percentile for age · sex`;
 
@@ -1588,7 +1205,7 @@ function renderChild(bmi, h, w, ageYears) {
   const sexLabel = sex === 'male' ? 'boys' : 'girls';
   const ageLabel = `${ageYears.toFixed(1).replace(/\.0$/, '')}-year-old ${sexLabel}`;
 
-  const detail = el('result-detail');
+  const detail = $('[data-r="detail"]', panel);
   if (cat.key === 'normal') {
     detail.innerHTML = `For ${ageLabel} at this height, the healthy range sits between <span class="mono">${fmtWeight(w5)}</span> (5th) and <span class="mono">${fmtWeight(w85)}</span> (85th). This reads at the <span class="mono">${pctLabel(pct)}</span> percentile.`;
   } else if (cat.key === 'under') {
@@ -1602,62 +1219,95 @@ function renderChild(bmi, h, w, ageYears) {
     detail.innerHTML = `Above <span class="mono">${fmtWeight(w120)}</span> — 120% of the 95th-percentile BMI for ${ageLabel}. This is the severe-obesity flag; discuss with a paediatrician.`;
   }
 
-  el('mode-note').hidden = false;
-  el('mode-note').textContent = 'Child rules: INZ 1216 cites CDC growth charts. The panel physician records the nearest percentile against height-and-weight charts for the appropriate population.';
+  const note = $('[data-r="note"]', panel);
+  note.hidden = false;
+  note.textContent = 'Child rules: INZ 1216 cites CDC growth charts. The panel records the nearest percentile against height-and-weight charts for the appropriate population.';
 
-  el('band-title').textContent = `Weight band for a ${ageLabel}`;
-  renderBand('child', { h, L, M, S, bmi });
-  renderTable('child', { h, L, M, S, bmi, catKey: cat.key });
+  // Insights block
+  const w50 = M * h * h;
+  const bandMid = (w5 + w85) / 2;
+  const kgToMedian = w - w50;
+  const kgToBandMid = w - bandMid;
+  const zRound = (z >= 0 ? '+' : '') + z.toFixed(2);
+  const zMeaning = Math.abs(z) < 0.5 ? 'close to average'
+    : Math.abs(z) < 1 ? (z > 0 ? 'slightly above average' : 'slightly below average')
+    : Math.abs(z) < 1.645 ? (z > 0 ? 'above average' : 'below average')
+    : Math.abs(z) < 2 ? (z > 0 ? 'well above average' : 'well below average')
+    : (z > 0 ? 'far above average' : 'far below average');
+  const pctInt = Math.max(0, Math.min(100, Math.round(pct)));
+  const otherSide = 100 - pctInt;
+
+  const insRow = (k, v) => `<div class="ins-row"><span class="ins-k">${k}</span><span class="ins-v">${v}</span></div>`;
+  const insights = $('[data-r="insights"]', panel);
+  insights.hidden = false;
+  insights.innerHTML = [
+    insRow('What the percentile means',
+      `Of same-age ${sexLabel} at any height, roughly <b>${pctInt}%</b> have a lower BMI and <b>${otherSide}%</b> have a higher one.`),
+    insRow('Z-score',
+      `<b>${zRound}</b> <em>${zMeaning} (0 is the median, ±1.65 marks the P5 / P95 cutoffs)</em>`),
+    insRow('Median weight (P50)',
+      `<b>${fmtWeight(w50)}</b> at this height · ${
+        Math.abs(kgToMedian) < 0.1 ? 'exactly at median'
+          : (kgToMedian > 0
+              ? `<b>${fmtWeightDelta(kgToMedian)}</b> above median`
+              : `<b>${fmtWeightDelta(-kgToMedian)}</b> below median`)
+      }`),
+    insRow('Mid of healthy band',
+      `<b>${fmtWeight(bandMid)}</b> (midpoint of P5–P85) · ${
+        Math.abs(kgToBandMid) < 0.1 ? 'at the midpoint'
+          : (kgToBandMid > 0
+              ? `${fmtWeightDelta(kgToBandMid)} above`
+              : `${fmtWeightDelta(-kgToBandMid)} below`)
+      }`),
+    insRow('Healthy band at this height',
+      `${fmtWeight(w5)} – ${fmtWeight(w85)} <em>${fmtWeightDelta(w85 - w5)} wide</em>`),
+    insRow('BMI at the band edges',
+      `P5 = ${bmi5.toFixed(1)} · P50 = ${M.toFixed(1)} · P85 = ${bmi85.toFixed(1)} · P95 = ${bmi95.toFixed(1)}`),
+    insRow('What INZ records',
+      `The nearest percentile — here <b>${pctLabel(pct)}</b>. The panel comments when a child is below P5 or when growth has shifted sharply across visits.`),
+    insRow('Tracking over time',
+      `A healthy child usually stays near the same percentile. The weight chart below plots that line; crossing two bands up or down between visits is worth a GP review.`),
+  ].join('');
+
+  $('[data-r="band-title"]', panel).textContent = `Weight band for a ${ageLabel}`;
+  renderBand(panel, 'child', { h, L, M, S, bmi, w });
+  renderTable(panel, 'child', { h, L, M, S, bmi, catKey: cat.key });
 }
 
-function renderInfant() {
-  el('main-label').textContent = 'Not applicable';
-  el('bmi-value').textContent = '—';
-  showInzChip('info', 'Infant: head circumference & weight', 'under 2y');
-  setChip('cat-chip', 'info', 'Use growth charts');
-  el('result-detail').innerHTML = 'INZ 1216 does not use BMI below age 2. Panel physicians record weight to the nearest 0.1 kg, length, and head circumference, and compare each to the appropriate growth chart. Head circumference below the 3rd centile triggers referral.';
-  el('age-stop').hidden = false;
-  el('age-stop').textContent = 'Under age 2: bring recent weight and head-circumference records to the IME.';
-  renderBand('empty');
-  renderTable('empty');
+function markerHtml(wKg, pos) {
+  const pct = Math.max(0, Math.min(100, pos * 100));
+  return `<div class="marker" style="left:${pct}%">
+    <span class="marker__label">${fmtWeight(wKg)}</span>
+  </div>`;
 }
 
-function renderBand(kind, ctx) {
-  const bar = el('band-bar');
-  const ticks = el('band-ticks');
-  const legend = el('band-legend');
+function renderBand(panel, kind, ctx) {
+  const bar = $('[data-r="bar"]', panel);
+  const ticks = $('[data-r="ticks"]', panel);
+  const legend = $('[data-r="legend"]', panel);
 
-  if (kind === 'empty') {
-    bar.innerHTML = ''; ticks.innerHTML = ''; legend.innerHTML = '';
-    return;
-  }
+  if (kind === 'empty') { bar.innerHTML=''; ticks.innerHTML=''; legend.innerHTML=''; return; }
 
   if (kind === 'adult') {
-    const h = ctx.h;
+    const { h, w } = ctx;
     const BAND_MIN = 15, BAND_MAX = 45;
     const stops = [15, 18.5, 25, 30, 35, 40, 45];
     const segs = [
-      { key: 'under',  from: 15,   to: 18.5 },
-      { key: 'normal', from: 18.5, to: 25 },
-      { key: 'over',   from: 25,   to: 30 },
-      { key: 'ob1',    from: 30,   to: 35 },
-      { key: 'ob2',    from: 35,   to: 40 },
-      { key: 'ob3',    from: 40,   to: 45 },
+      { key:'under', from:15, to:18.5 },
+      { key:'normal', from:18.5, to:25 },
+      { key:'over', from:25, to:30 },
+      { key:'ob1', from:30, to:35 },
+      { key:'ob2', from:35, to:40 },
+      { key:'ob3', from:40, to:45 },
     ];
-    const toPct = (bmi) => ((bmi - BAND_MIN) / (BAND_MAX - BAND_MIN)) * 100;
-    const safeLeft = toPct(INZ_BMI_MIN);
-    const safeRight = toPct(INZ_BMI_MAX);
-    const thresholdLeft = toPct(INZ_BMI_MAX);
-
-    const m = currentMember();
+    const toPct = (b) => ((b - BAND_MIN) / (BAND_MAX - BAND_MIN)) * 100;
+    const safeL = toPct(INZ_BMI_MIN), safeR = toPct(INZ_BMI_MAX);
+    const thrL = toPct(INZ_BMI_MAX);
     bar.innerHTML =
-      `<div class="inz-safe" style="left:${safeLeft}%; width:${safeRight - safeLeft}%"></div>` +
-      segs.map(s => {
-        const basis = ((s.to - s.from) / (BAND_MAX - BAND_MIN)) * 100;
-        return `<div class="seg" data-cat="${s.key}" style="flex-basis:${basis}%"></div>`;
-      }).join('') +
-      `<div class="inz-threshold" style="left:${thresholdLeft}%"><span class="inz-threshold__label">INZ · BMI 30</span></div>` +
-      markerHtml(m.weightKg, (m.weightKg / (h*h) - BAND_MIN) / (BAND_MAX - BAND_MIN));
+      `<div class="inz-safe" style="left:${safeL}%; width:${safeR-safeL}%"></div>` +
+      segs.map(s => `<div class="seg" data-cat="${s.key}" style="flex-basis:${((s.to-s.from)/(BAND_MAX-BAND_MIN))*100}%"></div>`).join('') +
+      `<div class="inz-threshold" style="left:${thrL}%"><span class="inz-threshold__label">INZ · BMI 30</span></div>` +
+      markerHtml(w, (w/(h*h) - BAND_MIN) / (BAND_MAX - BAND_MIN));
 
     const narrow = window.innerWidth < 520;
     const shown = narrow ? [18.5, 25, 30, 35, 40] : stops;
@@ -1684,7 +1334,7 @@ function renderBand(kind, ctx) {
   }
 
   // child
-  const { h, L, M, S, bmi } = ctx;
+  const { h, L, M, S, bmi, w } = ctx;
   const bmi5 = bmiFromZ(Z_P5, L, M, S);
   const bmi85 = bmiFromZ(Z_P85, L, M, S);
   const bmi95 = bmiFromZ(Z_P95, L, M, S);
@@ -1693,22 +1343,19 @@ function renderBand(kind, ctx) {
   const bmiHi = Math.max(bmiFromZ(3, L, M, S), bmi120 * 1.05);
   const RANGE = bmiHi - bmiLo;
   const toPct = (b) => ((b - bmiLo) / RANGE) * 100;
-
   const segs = [
-    { key: 'under',  from: bmiLo,  to: bmi5 },
-    { key: 'normal', from: bmi5,   to: bmi85 },
-    { key: 'over',   from: bmi85,  to: bmi95 },
-    { key: 'ob1',    from: bmi95,  to: bmi120 },
-    { key: 'ob2',    from: bmi120, to: bmiHi },
+    { key:'under', from: bmiLo,  to: bmi5 },
+    { key:'normal',from: bmi5,   to: bmi85 },
+    { key:'over',  from: bmi85,  to: bmi95 },
+    { key:'ob1',   from: bmi95,  to: bmi120 },
+    { key:'ob2',   from: bmi120, to: bmiHi },
   ];
-  const safeLeft = toPct(bmi5);
-  const safeRight = toPct(bmi85);
+  const safeL = toPct(bmi5), safeR = toPct(bmi85);
 
-  const m = currentMember();
   bar.innerHTML =
-    `<div class="inz-safe" style="left:${safeLeft}%; width:${safeRight - safeLeft}%"></div>` +
-    segs.map(s => `<div class="seg" data-cat="${s.key}" style="flex-basis:${((s.to - s.from) / RANGE) * 100}%"></div>`).join('') +
-    markerHtml(m.weightKg, (bmi - bmiLo) / RANGE);
+    `<div class="inz-safe" style="left:${safeL}%; width:${safeR-safeL}%"></div>` +
+    segs.map(s => `<div class="seg" data-cat="${s.key}" style="flex-basis:${((s.to-s.from)/RANGE)*100}%"></div>`).join('') +
+    markerHtml(w, (bmi - bmiLo) / RANGE);
 
   const stops = [
     { bmi: bmi5,   label: 'P5' },
@@ -1731,16 +1378,9 @@ function renderBand(kind, ctx) {
   `;
 }
 
-function markerHtml(wKg, pos) {
-  const pct = Math.max(0, Math.min(100, pos * 100));
-  return `<div class="marker" style="left:${pct}%">
-    <span class="marker__label">${fmtWeight(wKg)}</span>
-  </div>`;
-}
-
-function renderTable(kind, ctx) {
-  const tbody = document.querySelector('#ranges tbody');
-  const thMid = el('th-mid');
+function renderTable(panel, kind, ctx) {
+  const tbody = $('[data-r="tbody"]', panel);
+  const thMid = $('[data-r="th-mid"]', panel);
   if (kind === 'empty') { tbody.innerHTML = ''; return; }
 
   if (kind === 'adult') {
@@ -1776,11 +1416,11 @@ function renderTable(kind, ctx) {
   const w5 = bmi5 * h * h, w85 = bmi85 * h * h, w95 = bmi95 * h * h, w120 = bmi120 * h * h;
 
   const rows = [
-    { key: 'under',  label: 'Underweight',    mid: '< 5th',          wt: `< ${fmtWeight(w5)}` },
-    { key: 'normal', label: 'Healthy weight', mid: '5th – 85th',     wt: `${fmtWeight(w5)} – ${fmtWeight(w85)}` },
-    { key: 'over',   label: 'Overweight',     mid: '85th – 95th',    wt: `${fmtWeight(w85)} – ${fmtWeight(w95)}` },
-    { key: 'ob1',    label: 'Obesity',        mid: '≥ 95th',         wt: `${fmtWeight(w95)} – ${fmtWeight(w120)}` },
-    { key: 'ob2',    label: 'Severe obesity', mid: '≥ 120% of 95th', wt: `≥ ${fmtWeight(w120)}` },
+    { key:'under',  label:'Underweight',    mid:'< 5th',          wt:`< ${fmtWeight(w5)}` },
+    { key:'normal', label:'Healthy weight', mid:'5th – 85th',     wt:`${fmtWeight(w5)} – ${fmtWeight(w85)}` },
+    { key:'over',   label:'Overweight',     mid:'85th – 95th',    wt:`${fmtWeight(w85)} – ${fmtWeight(w95)}` },
+    { key:'ob1',    label:'Obesity',        mid:'≥ 95th',         wt:`${fmtWeight(w95)} – ${fmtWeight(w120)}` },
+    { key:'ob2',    label:'Severe obesity', mid:'≥ 120% of 95th', wt:`≥ ${fmtWeight(w120)}` },
   ];
   tbody.innerHTML = rows.map(r =>
     `<tr data-cat="${r.key}" data-active="${r.key === catKey}">
@@ -1791,11 +1431,9 @@ function renderTable(kind, ctx) {
   ).join('');
 }
 
-function renderHistory() {
-  const m = currentMember();
-  const list = el('history-list');
-  const chart = el('history-chart');
-  if (!m) { list.innerHTML = ''; chart.innerHTML = ''; return; }
+function renderHistory(panel, m) {
+  const list = $('[data-r="history"]', panel);
+  const chart = $('[data-r="chart"]', panel);
   const readings = (m.readings || []).slice().sort((a, b) => a.date.localeCompare(b.date));
   const h = m.heightCm ? m.heightCm / 100 : null;
 
@@ -1805,7 +1443,6 @@ function renderHistory() {
     return;
   }
 
-  // chart
   const W = 600, H = 110, pad = 10;
   const weights = readings.map(r => r.weightKg);
   const wMin = Math.min(...weights) * 0.98;
@@ -1814,33 +1451,30 @@ function renderHistory() {
   const tN = new Date(readings[readings.length-1].date).getTime();
   const spanT = Math.max(1, tN - t0);
   const xFor = (d) => pad + (W - 2*pad) * ((new Date(d).getTime() - t0) / spanT);
-  const yFor = (w) => (H - pad) - (H - 2*pad) * ((w - wMin) / Math.max(0.001, wMax - wMin));
+  const yFor = (ww) => (H - pad) - (H - 2*pad) * ((ww - wMin) / Math.max(0.001, wMax - wMin));
 
   const points = readings.map(r => `${xFor(r.date).toFixed(1)},${yFor(r.weightKg).toFixed(1)}`);
   const polyline = `<polyline fill="none" stroke="var(--accent)" stroke-width="2" points="${points.join(' ')}"/>`;
   const area = `<polygon fill="var(--accent)" fill-opacity="0.12" points="${points.join(' ')} ${xFor(readings[readings.length-1].date).toFixed(1)},${H-pad} ${xFor(readings[0].date).toFixed(1)},${H-pad}"/>`;
   const dots = readings.map(r => `<circle cx="${xFor(r.date).toFixed(1)}" cy="${yFor(r.weightKg).toFixed(1)}" r="3" fill="var(--accent)"/>`).join('');
-  const refs = h ? (() => {
+  let refs = '';
+  if (h) {
     const ageYears = ageFromDob(m.dob);
     const mode = modeFor(ageYears);
-    const lines = [];
     if (mode === 'adult') {
-      const addLine = (bmi, label) => {
-        const w = bmi * h * h;
-        if (w >= wMin && w <= wMax) {
-          lines.push(`<line x1="${pad}" x2="${W-pad}" y1="${yFor(w)}" y2="${yFor(w)}" stroke="var(--border-strong)" stroke-dasharray="3 3" stroke-width="1"/>`);
-          lines.push(`<text x="${W-pad-4}" y="${yFor(w)-4}" font-size="10" fill="var(--muted)" text-anchor="end" font-family="IBM Plex Mono,monospace">BMI ${bmi} · ${fmtWeightShort(w)}</text>`);
+      const addLine = (bmi) => {
+        const ww = bmi * h * h;
+        if (ww >= wMin && ww <= wMax) {
+          refs += `<line x1="${pad}" x2="${W-pad}" y1="${yFor(ww)}" y2="${yFor(ww)}" stroke="var(--border-strong)" stroke-dasharray="3 3" stroke-width="1"/>`;
+          refs += `<text x="${W-pad-4}" y="${yFor(ww)-4}" font-size="10" fill="var(--muted)" text-anchor="end" font-family="IBM Plex Mono,monospace">BMI ${bmi} · ${fmtWeightShort(ww)}</text>`;
         }
       };
-      addLine(25, '25');
-      addLine(30, '30');
+      addLine(25);
+      addLine(30);
     }
-    return lines.join('');
-  })() : '';
-
+  }
   chart.innerHTML = refs + area + polyline + dots;
 
-  // list (descending)
   const descending = readings.slice().reverse();
   list.innerHTML = descending.map(r => {
     const bmiR = h ? (r.weightKg / (h*h)).toFixed(1) : '—';
@@ -1848,66 +1482,46 @@ function renderHistory() {
       <span class="d">${r.date}</span>
       <span class="w">${fmtWeight(r.weightKg)}</span>
       <span class="b">BMI ${bmiR}</span>
-      <button class="danger" data-date="${r.date}" aria-label="Delete reading">×</button>
+      <button class="danger" data-del="${r.date}" aria-label="Delete reading">×</button>
     </div>`;
   }).join('');
 
-  list.querySelectorAll('button[data-date]').forEach(btn => {
-    btn.addEventListener('click', () => deleteReading(btn.dataset.date));
+  list.querySelectorAll('button[data-del]').forEach(btn => {
+    btn.addEventListener('click', () => deleteReading(m.id, btn.dataset.del));
   });
 }
 
 function renderFooterNotes() {
-  el('inz-note').innerHTML = `Based on <b>Immigration New Zealand Panel Member Instructions (INZ 1216), May 2026</b>. Adults: panel ticks "no significant or abnormal findings" when BMI is in a normal range and ≤ 30. Children: panel records the nearest percentile against standardised growth charts, with CDC charts cited by name. Infants under 2: weight recorded to the nearest 0.1 kg; head circumference below the 3rd centile triggers referral. Source: <a href="https://www.immigration.govt.nz/assets/inz/documents/industry/inz1216.pdf" target="_blank" rel="noopener">immigration.govt.nz/assets/inz/documents/industry/inz1216.pdf</a>.`;
-  el('formula-note').textContent = 'BMI formula per INZ 1216: weight in kilograms divided by height in metres squared.';
-  el('source-note').innerHTML = 'This is a personal overview, not a medical opinion. The panel physician decides what goes on the IME. BMI is one line in the IME alongside blood pressure, urinalysis, cardiovascular, respiratory, visual acuity and medical history.';
+  $('#inz-note').innerHTML = `Based on <b>Immigration New Zealand Panel Member Instructions (INZ 1216), May 2026</b>. Adults: panel ticks "no significant or abnormal findings" when BMI is in a normal range and ≤ 30. Children: panel records the nearest percentile against standardised growth charts, with CDC charts cited by name. Infants under 2: weight recorded to the nearest 0.1 kg; head circumference below the 3rd centile triggers referral. Source: <a href="https://www.immigration.govt.nz/assets/inz/documents/industry/inz1216.pdf" target="_blank" rel="noopener">immigration.govt.nz/assets/inz/documents/industry/inz1216.pdf</a>.`;
+  $('#formula-note').textContent = 'BMI formula per INZ 1216: weight in kilograms divided by height in metres squared.';
+  $('#source-note').innerHTML = 'This is a personal overview, not a medical opinion. The panel physician decides what goes on the IME. BMI is one line in the IME alongside blood pressure, urinalysis, cardiovascular, respiratory, visual acuity and medical history.';
 }
 
-// -- wiring --
-
 function wire() {
-  const inputs = ['name','dob','sex','height-cm','height-ft','height-in','weight-kg','weight-lb'];
-  inputs.forEach(id => {
-    const node = el(id);
-    const handler = () => {
-      readMemberInputs();
-      saveState();
-      render();
-      renderRoster();
-      renderOverview();
-    };
-    node.addEventListener('input', handler);
-    node.addEventListener('change', handler);
-  });
-
-  document.querySelectorAll('.unit-toggle button').forEach(btn => {
+  $$('.unit-toggle button').forEach(btn => {
     btn.addEventListener('click', () => {
       if (state.units === btn.dataset.units) return;
-      readMemberInputs();
       state.units = btn.dataset.units;
+      document.documentElement.dataset.units = state.units;
       saveState();
-      syncUnitFields();
-      render();
-      renderRoster();
-      renderOverview();
+      // Update inputs with current values in the new unit
+      state.members.forEach(m => {
+        const panel = $(`[data-member="${m.id}"]`);
+        if (panel) {
+          syncPanelUnitFields(panel, m);
+          updatePanel(m, panel);
+        }
+      });
+      $$('.unit-toggle button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.units === state.units)));
     });
   });
 
-  el('add-member').addEventListener('click', addMember);
-  el('add-first').addEventListener('click', addMember);
-  el('delete-member').addEventListener('click', () => {
-    const m = currentMember();
-    if (m) removeMember(m.id);
-  });
-  el('log-weight').addEventListener('click', () => {
-    readMemberInputs();
-    saveState();
-    logWeight();
-    renderRoster();
-    renderOverview();
-  });
+  $('#add-member').addEventListener('click', addMember);
+  $('#add-first').addEventListener('click', addMember);
 
-  window.addEventListener('resize', () => render());
+  window.addEventListener('resize', () => {
+    state.members.forEach(m => updatePanel(m));
+  });
   window.addEventListener('storage', (e) => {
     if (e.key === STORAGE_KEY) {
       loadState();

@@ -796,9 +796,19 @@ function removeMember(id) {
   renderAll();
 }
 function select(id) {
+  if (state.selectedId === id) return;
   state.selectedId = id;
   saveState();
-  renderAll();
+  $$('.row-card').forEach(card => {
+    card.dataset.active = String(card.dataset.member === id);
+  });
+  const m = state.members.find(x => x.id === id);
+  if (!m) return;
+  const detailEl = $('#detail');
+  detailEl.hidden = false;
+  detailEl.innerHTML = detailHtml(m);
+  attachDetailHandlers(m);
+  updateDetail(m);
 }
 function setWeight(id, kg) {
   const m = state.members.find(x => x.id === id);
@@ -1037,9 +1047,12 @@ function renderBandInto(bar, ticks, mode, ctx) {
     { key:'ob2',   from: bmi120, to: bmiHi },
   ];
   const safeL = toPct(bmi5), safeR = toPct(bmi85);
+  const thrLo = toPct(bmi5), thrHi = toPct(bmi95);
   bar.innerHTML =
     `<div class="inz-safe" style="left:${safeL}%; width:${safeR-safeL}%"></div>` +
     segs.map(s => `<div class="seg" data-cat="${s.key}" style="flex-basis:${((s.to-s.from)/RANGE)*100}%"></div>`).join('') +
+    `<div class="inz-threshold" style="left:${thrLo}%"></div>` +
+    `<div class="inz-threshold" style="left:${thrHi}%"></div>` +
     markerHtml(w, (bmi - bmiLo) / RANGE);
 
   const stops = [
